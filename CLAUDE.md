@@ -1,7 +1,7 @@
 # CLAUDE.md - Feuille de Route Swiss Heritage
 
 > **Document vivant** - Mis a jour par Claude Code (chef d'orchestre)
-> Derniere MAJ : 2026-02-14 v3.0 (clarification role Kala)
+> Derniere MAJ : 2026-02-14 v3.1 (Mode A/B Kala + KalaAdapter)
 
 ---
 
@@ -31,11 +31,12 @@
 │     -> Capter des leads qualifies                         │
 │                                                           │
 │  2. TRANSMISSION A KALA                                   │
-│     Envoyer les donnees du lead via API Kala              │
+│     Mode A : Redirection vers URL Kala (cle en main)      │
+│     Mode B : POST API Kala (quand specs recues)           │
 │     -> Swiss Heritage n'effectue PAS la recherche         │
 │                                                           │
 │  3. AUTOMATION POST-RESULTAT                              │
-│     Recevoir le resultat Kala via webhook                 │
+│     Recevoir le resultat Kala (webhook ou polling)        │
 │     Contacter le client (email, WhatsApp)                 │
 │     Maximiser le taux de rapatriement                     │
 │     -> C'est la ou Swiss Heritage cree de la valeur       │
@@ -52,116 +53,145 @@
 │  - Verification d'identite                                │
 │  - CRM principal / gestion dossier                        │
 │  - Processus legal et mandat                              │
-│  - Envoi a la Centrale du 2eme pilier                    │
 │  - Rapatriement des avoirs                                │
-│  - Dashboard client Kala                                  │
+│  - Dashboard client                                       │
 │  - Conformite reglementaire de la recherche              │
 └──────────────────────────────────────────────────────────┘
 ```
 
-### REGLE D'OR
-> **Swiss Heritage ne reconstruit JAMAIS ce que Kala fait deja.**
-> Pas de verification d'identite. Pas de collecte de documents.
-> Pas de gestion de mandat. Pas de rapatriement.
-> Swiss Heritage = acquisition + transmission + post-resultat.
+### INTERDICTIONS ABSOLUES
+- Ne PAS scraper Kala
+- Ne PAS automatiser le navigateur Kala
+- Ne PAS contourner l'acces API
+- Ne PAS reconstruire le process de recherche
 
 ---
 
-## 2. ARCHITECTURE SIMPLIFIEE (3 couches)
+## 2. MODES KALA (A/B)
+
+### MODE A — Fallback (ACTIF maintenant)
+L'API Kala n'est pas publique. Swiss Heritage redirige le client vers une URL Kala personnalisee (solution cle en main Kala).
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  COUCHE 3 - POST-RESULTAT (Valeur ajoutee)              │
-│  Recevoir webhook Kala -> contacter client ->            │
-│  sequences email/WhatsApp -> maximiser rapatriement      │
-│  [Responsable: OpenClaw]                                 │
-├─────────────────────────────────────────────────────────┤
-│  COUCHE 2 - TRANSMISSION (API Kala)                      │
-│  Recevoir lead -> valider -> envoyer a API Kala ->       │
-│  stocker reference dans CRM leger                        │
-│  [Responsable: OpenClaw]                                 │
-├─────────────────────────────────────────────────────────┤
-│  COUCHE 1 - ACQUISITION (Capture)                        │
-│  Site web, formulaire, SEO, ads, partenaires             │
-│  [Responsable: Claude Code (site) + OpenClaw (canaux)]   │
-└─────────────────────────────────────────────────────────┘
+[Client] -> [Formulaire Swiss Heritage] -> [CRM Swiss Heritage]
+                                               |
+                                               v
+                                        [Email au client]
+                                        "Cliquez ici pour
+                                         lancer votre recherche"
+                                               |
+                                               v
+                                        [URL Kala partenaire]
+                                        kala.ch/partner/swiss-heritage
+                                        ou URL fournie par Kala
 ```
 
-### Flow complet
+**Ce qui fonctionne en Mode A :**
+- Acquisition (site + formulaire)
+- CRM leger (Google Sheets)
+- Email confirmation + lien Kala
+- Email notification admin
+- Scoring leger (nb_employeurs + statut)
+- Suivi manuel des resultats (admin verifie + met a jour CRM)
+
+**Ce qui est en attente en Mode A :**
+- Transmission automatique a Kala (pas d'API)
+- Reception automatique des resultats (pas de webhook)
+- Automation post-resultat automatique
+
+### MODE B — API (A activer quand specs Kala recues)
+Quand Kala fournit la documentation API, Swiss Heritage bascule :
 
 ```
-[Client]  ->  [Site swiss-heritage.ch]  ->  [Webhook n8n W1]
-                                                │
-                                     ┌──────────▼──────────┐
-                                     │  W1: Reception lead  │
-                                     │  + Validation        │
-                                     │  + CRM leger         │
-                                     │  + Envoi API Kala    │
-                                     └──────────┬──────────┘
-                                                │
-                                     ┌──────────▼──────────┐
-                                     │  W2: Confirmation    │
-                                     │  Email/WhatsApp      │
-                                     │  au client           │
-                                     └─────────────────────┘
+[Client] -> [Formulaire] -> [n8n W1] -> [KalaAdapter.createCase()]
+                                              |
+                                              v
+                                        [API Kala POST]
+                                              |
+                                              v
+                                        [case_id retourne]
+                                              |
+                                              v
+                                        [CRM: kala_reference]
 
-               ... Kala fait la recherche (2-3 mois) ...
+         ... Kala fait la recherche ...
 
-                                     ┌─────────────────────┐
-                                     │  W3: Webhook retour  │
-                                     │  resultat Kala       │
-                                     └──────────┬──────────┘
-                                                │
-                                     ┌──────────▼──────────┐
-                                     │  W4: Automation      │
-                                     │  post-resultat       │
-                                     │  - Si found: push    │
-                                     │    rapatriement      │
-                                     │  - Si not found:     │
-                                     │    email empathique  │
-                                     └─────────────────────┘
+[Kala webhook] -> [n8n W3] -> [KalaAdapter.handleWebhook()]
+      ou
+[n8n cron] -> [KalaAdapter.getCaseStatus()] -> [polling]
+                                              |
+                                              v
+                                        [W4: post-resultat]
+```
+
+### BASCULE A -> B
+Voir `/docs/KALA_ONBOARDING.md` pour la checklist complete.
+
+---
+
+## 3. ARCHITECTURE
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  COUCHE 3 - POST-RESULTAT (Valeur ajoutee)               │
+│  Mode A: admin met a jour manuellement -> email auto     │
+│  Mode B: webhook/polling Kala -> sequences automatiques  │
+│  [Responsable: OpenClaw]                                  │
+├──────────────────────────────────────────────────────────┤
+│  COUCHE 2 - KALA ADAPTER (Abstraction)                    │
+│  Interface stable : createCase / getCaseStatus /          │
+│  handleWebhook. Implem interchangeable A ou B.           │
+│  [Responsable: OpenClaw]                                  │
+├──────────────────────────────────────────────────────────┤
+│  COUCHE 1 - ACQUISITION (Capture + Scoring)               │
+│  Site web, formulaire, scoring leger, CRM, emails        │
+│  [Responsable: Claude Code (site) + OpenClaw (n8n)]       │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. EQUIPE IA & ROLES
+## 4. EQUIPE
 
 ### Claude Code - Chef d'Orchestre (LEAD)
-- **Responsabilites** : Site web, design, SEO, conformite legale, coordination
-- **Autorite** : Decisions techniques, validation des PRs
+- Site web, design, SEO, conformite legale, coordination, KalaAdapter spec
 
 ### OpenClaw - Specialiste Automatisation (EXECUTANT)
-- **Responsabilites** : 4 workflows n8n, CRM leger, integration API Kala
-- **Rapport** : Rend compte a Claude Code via GitHub Issues/PRs
+- Workflows n8n, CRM, KalaAdapter implementation, emails
 
 ### Humain - Product Owner
-- **Role** : Decisions business, validation finale
-- **Contact** : lionel.ndombele@gmail.com
+- Decisions business, contact Kala pour obtenir les specs API
+- Contact : lionel.ndombele@gmail.com
 
 ---
 
-## 4. ETAT DU PROJET
+## 5. ETAT DU PROJET
 
 ### Site Web (Claude Code) - v2.0 FAIT
 - [x] Design premium avec effets 3D
 - [x] Formulaire multi-etapes (2 steps)
 - [x] Checkbox consentement LPD (non pre-cochee)
-- [x] Stats : 55 Mrd CHF, 1.35 Mio comptes, 1500+ instituts, 1/5 Suisses
-- [x] Footer conforme : SwissEmpire2 Sarl + LSFIN disclaimer
-- [x] SEO meta tags + Open Graph + Responsive
+- [x] Stats, FAQ, comparaison, temoignages
+- [x] Footer conforme + SEO + Responsive
 - [ ] Page politique de confidentialite
 - [ ] Page mentions legales / CGU
-- [ ] Google Analytics 4 configuration
+- [ ] Google Analytics 4
 
-### Workflows n8n (OpenClaw) - 4 workflows
-- [ ] **W1** : Reception lead + validation + CRM + envoi API Kala
-- [ ] **W2** : Email/WhatsApp confirmation client
-- [ ] **W3** : Webhook retour resultat Kala
-- [ ] **W4** : Sequence automation post-resultat (found / not found)
+### Workflows n8n (OpenClaw) - Mode A d'abord
+- [ ] **W1** : Reception lead + CRM + scoring leger + email avec lien Kala
+- [ ] **W2** : Email confirmation client (avec lien Kala partenaire)
+- [ ] **W3** : (Mode B) Webhook retour resultat Kala
+- [ ] **W4** : (Mode A) Formulaire admin MAJ statut -> email auto
+              (Mode B) Automation post-resultat complete
+
+### KalaAdapter
+- [ ] Interface definie (createCase, getCaseStatus, handleWebhook)
+- [ ] Mode A : implementation fallback (redirection URL)
+- [ ] Mode B : implementation API (a coder quand specs recues)
 
 ---
 
-## 5. SPECS TECHNIQUES
+## 6. SPECS TECHNIQUES
 
 ### Payload formulaire -> webhook n8n (W1)
 ```json
@@ -184,37 +214,47 @@
 }
 ```
 
-### Webhooks
-- **Reception formulaire (W1)** : `https://n8n.swiss-leads.ch/webhook/lpp-form`
-- **Retour resultat Kala (W3)** : `https://n8n.swiss-leads.ch/webhook/kala-result`
-
-### CRM leger (Google Sheets) - 10 colonnes
+### Scoring leger (dans W1)
 ```
-lead_id | timestamp | prenom | nom | email | phone | canton | nb_employeurs | statut | kala_reference
-```
-
-### Statuts du lead (6 seulement)
-```
-new            -> Lead recu du formulaire
-sent_to_kala   -> Transmis a l'API Kala
-confirmed      -> Confirmation envoyee au client
-result_found   -> Kala a trouve des avoirs
-result_empty   -> Kala n'a rien trouve
-contacted      -> Client contacte post-resultat
+nb_employeurs "3-5"  -> score += 15
+nb_employeurs "6-10" -> score += 20
+nb_employeurs "10+"  -> score += 25
+statut "chomage"     -> score += 20
+statut "retraite"    -> score += 20
+statut "independant" -> score += 10
+Score enregistre dans CRM, utilise pour prioriser le suivi
 ```
 
----
+### CRM leger (Google Sheets) - 12 colonnes
+```
+lead_id | timestamp | prenom | nom | email | phone | canton | nb_employeurs | statut_emploi | score | statut | kala_reference
+```
 
-## 6. DONNEES KALA (Business)
+### Statuts du lead
+```
+new              -> Lead recu du formulaire
+scored           -> Score calcule
+kala_redirected  -> Lien Kala envoye au client (Mode A)
+sent_to_kala     -> Transmis via API (Mode B)
+result_found     -> Avoirs trouves
+result_empty     -> Rien trouve
+contacted        -> Client contacte post-resultat
+```
 
-| Info | Valeur |
-|------|--------|
-| Marche total libre passage | 55 Mrd CHF |
-| Comptes de libre passage | 1.35 Mio |
-| Instituts interroges | ~1'500 |
-| Suisses concernes | 1 sur 5 |
-| Frais rapatriement | 3% du capital (deduit directement) |
-| Delai recherche | 2 a 3 mois |
+### KalaAdapter Interface
+```
+createCase(lead) -> { case_id, redirect_url? }
+  Mode A: retourne { case_id: lead_id, redirect_url: KALA_PARTNER_URL }
+  Mode B: POST API Kala -> retourne { case_id: kala_id }
+
+getCaseStatus(case_id) -> { status, amount?, details? }
+  Mode A: lecture CRM (statut mis a jour manuellement)
+  Mode B: GET API Kala
+
+handleWebhook(event) -> { lead_id, status, amount?, details? }
+  Mode A: non utilise
+  Mode B: parse payload webhook Kala -> format normalise
+```
 
 ---
 
@@ -244,35 +284,40 @@ privacy@swiss-heritage.ch.
 
 ## 8. PLANNING
 
-| Phase | Semaine | Claude Code | OpenClaw | Go/No-Go |
-|-------|---------|------------|----------|----------|
-| **1** | S1-S2 | Site V2 (FAIT) | W1 + W2 | Lead -> Kala + client confirme |
-| **2** | S3-S4 | Pages legales + GA4 | W3 + W4 | Resultat Kala -> client contacte |
-| **3** | S5+ | Optimisation conversion | Amelioration sequences | Revenue mesurable |
+| Phase | Semaine | Claude Code | OpenClaw | Mode | Go/No-Go |
+|-------|---------|------------|----------|------|----------|
+| **1** | S1-S2 | Site (FAIT) | W1+W2 (Mode A) | A | Lead -> CRM -> lien Kala |
+| **2** | S3-S4 | Pages legales | W4 Mode A (admin MAJ) | A | Suivi manuel fonctionnel |
+| **API** | Quand specs | Adapter form si besoin | Bascule Mode B | B | End-to-end automatique |
+| **3** | Post-API | Optimisation | W3+W4 Mode B complet | B | Revenue mesurable |
 
 ---
 
 ## 9. REGLES ABSOLUES
 
-1. **Kala = boite noire** : Ne JAMAIS reconstruire ce que Kala fait
-2. **Simplicite** : 4 workflows, pas de sur-ingenierie
-3. **Compliance by design** : LPD/LSFIN integre partout
-4. **Revenue-first** : L'automation post-resultat = levier #1
-5. **Swiss Heritage = acquisition + post-resultat** : Rien d'autre
+1. **Kala = boite noire** : Ne JAMAIS reconstruire, scraper, ou contourner
+2. **Mode A d'abord** : Fonctionner maintenant sans API
+3. **KalaAdapter** : Abstraction stable, implementation interchangeable
+4. **Simplicite** : 4 workflows max
+5. **Compliance by design** : LPD/LSFIN integre partout
+6. **Revenue-first** : L'automation post-resultat = levier #1
 
 ---
 
 ## 10. CHANGELOG
 
-### 2026-02-14 - v3.0 (Claude Code) - CLARIFICATION KALA
-- CLARIFICATION : Swiss Heritage != moteur de recherche
-- Reduction architecture 5 couches -> 3 couches
-- Suppression agents inutiles (Documentaliste, Signature, Kala Bridge)
-- Reduction 14 workflows -> 4 workflows
-- Reduction 20+ statuts -> 6 statuts
-- Nouveau flow simplifie
+### 2026-02-14 - v3.1 (Claude Code) - MODE A/B + KALA ADAPTER
+- Ajout Mode A (fallback redirection URL) et Mode B (API)
+- Definition interface KalaAdapter (createCase/getCaseStatus/handleWebhook)
+- Ajout scoring leger dans W1
+- Ajout docs/KALA_ONBOARDING.md (checklist specs a obtenir)
+- Interdictions explicites (pas de scraping, pas d'automation navigateur)
+- CRM ajuste a 12 colonnes (+ statut_emploi, score)
+- Statuts ajustes (+ scored, kala_redirected)
+
+### 2026-02-14 - v3.0 (Claude Code)
+- Clarification : Swiss Heritage = acquisition + post-resultat uniquement
+- Reduction 14 workflows -> 4, 20+ statuts -> 6
 
 ### 2026-02-14 - v2.0 (Claude Code)
-- Refonte site design 3D premium
-- Formulaire multi-etapes inspire de Kala
-- Initialisation repo GitHub
+- Refonte site design 3D premium + formulaire multi-etapes
