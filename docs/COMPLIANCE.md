@@ -67,8 +67,8 @@ Si un client demande un conseil financier apres decouverte d'avoirs :
 - [x] Checkbox consentement non pre-cochee
 - [x] Texte consentement conforme
 - [x] Footer avec mention LSFIN
-- [ ] Page politique de confidentialite
-- [ ] Lien politique de confidentialite dans formulaire
+- [x] Page politique de confidentialite (nLPD conforme, integree au site)
+- [x] Lien politique de confidentialite dans formulaire (texte consentement cliquable)
 
 ### Emails (OpenClaw)
 - [ ] Mention legale en footer de chaque email

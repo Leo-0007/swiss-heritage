@@ -59,6 +59,13 @@ function SwissHeritageLPP() {
 
   const heroCardRef = useRef(null);
 
+  // GA4 tracking helper (safe if gtag not loaded)
+  const trackEvent = useCallback((eventName, params = {}) => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', eventName, params);
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formStep === 1) {
@@ -70,6 +77,7 @@ function SwissHeritageLPP() {
       setFormStatus('idle');
       setFormMessage('');
       setFormStep(2);
+      trackEvent('form_step_complete', { step: 1 });
       return;
     }
 
@@ -81,6 +89,7 @@ function SwissHeritageLPP() {
 
     setFormStatus('loading');
     setFormMessage('');
+    trackEvent('form_submit', { step: 2, canton: formData.canton, statut_emploi: formData.statutEmploi, nb_employeurs: formData.nbEmployeurs });
 
     try {
       const response = await fetch('https://n8n.swiss-leads.ch/webhook-test/lpp-form', {
@@ -108,6 +117,7 @@ function SwissHeritageLPP() {
       if (response.ok) {
         setFormStatus('success');
         setFormMessage('Votre demande a bien ete enregistree. Un conseiller vous contactera sous 24h.');
+        trackEvent('form_success', { canton: formData.canton });
         setFormData({
           prenom: '', nom: '', email: '', phone: '',
           dateNaissance: '', canton: '', nationalite: 'suisse',
@@ -120,6 +130,7 @@ function SwissHeritageLPP() {
     } catch (error) {
       setFormStatus('error');
       setFormMessage('Une erreur est survenue. Veuillez reessayer ou nous contacter directement.');
+      trackEvent('form_error', { error_type: 'network' });
     }
   };
 
@@ -593,11 +604,11 @@ function SwissHeritageLPP() {
               animation: 'fadeInUp 0.8s ease-out 0.6s forwards',
               opacity: 0,
             }}>
-              <a href="#contact" style={styles.primaryBtn}>
+              <a href="#contact" style={styles.primaryBtn} onClick={() => trackEvent('cta_click', { cta_type: 'primary' })}>
                 Lancer ma recherche gratuite
                 <span style={styles.btnArrow}>→</span>
               </a>
-              <a href="#process" style={styles.secondaryBtn}>
+              <a href="#process" style={styles.secondaryBtn} onClick={() => trackEvent('cta_click', { cta_type: 'secondary' })}>
                 Decouvrir le processus
               </a>
             </div>
@@ -869,7 +880,7 @@ function SwissHeritageLPP() {
                   ...styles.faqItem,
                   ...(openFaq === i ? styles.faqItemOpen : {}),
                 }}
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                onClick={() => { setOpenFaq(openFaq === i ? null : i); if (openFaq !== i) trackEvent('faq_open', { faq_index: i, faq_question: faq.q }); }}
               >
                 <div style={styles.faqQuestion}>
                   <span>{faq.q}</span>
