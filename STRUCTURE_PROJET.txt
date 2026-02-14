@@ -1,0 +1,189 @@
+╔═══════════════════════════════════════════════════════════════════════╗
+║                    SWISS HERITAGE - PROJET COMPLET                    ║
+╚═══════════════════════════════════════════════════════════════════════╝
+
+📁 STRUCTURE DU PROJET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+versionfianleswissheritage/
+│
+├── 🌐 SITE WEB (Déploiement Netlify)
+│   ├── index.html                    ← Page HTML principale
+│   ├── swiss-heritage-lpp.jsx        ← Composant React (modifié)
+│   ├── _redirects                    ← Configuration Netlify
+│   └── netlify.toml                  ← Config Netlify
+│
+├── 🤖 AUTOMATION N8N
+│   └── WORKFLOW_N8N_SWISS_HERITAGE_COMPLET.json
+│       ├── 📥 Webhook reception
+│       ├── ✔️ Validation données
+│       ├── 📊 Google Sheets CRM
+│       ├── 📧 Email client
+│       ├── 📧 Email admin
+│       └── ✅ Réponse JSON
+│
+├── 📖 DOCUMENTATION
+│   ├── README.md                     ← Documentation complète
+│   ├── GUIDE_CONFIGURATION_N8N.md    ← Guide configuration détaillé
+│   ├── DEMARRAGE_RAPIDE.md           ← Quick start (5 min)
+│   └── STRUCTURE_PROJET.txt          ← Ce fichier
+│
+├── 🧪 OUTILS DE TEST
+│   ├── test-webhook.html             ← Interface test webhook
+│   └── TEMPLATE_GOOGLE_SHEET.csv     ← Template CRM
+│
+└── ✅ PRÊT POUR LA PRODUCTION
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 FLUX DE DONNÉES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. 👤 UTILISATEUR
+   │
+   ├─► Visite le site Netlify
+   └─► Remplit le formulaire
+       │
+       │ (POST JSON)
+       ▼
+2. 🌐 SITE WEB
+   │
+   ├─► swiss-heritage-lpp.jsx
+   │   └─► handleSubmit()
+   │       └─► fetch('https://n8n.swiss-leads.ch/webhook-test/lpp-form')
+   │
+   ▼
+3. 🤖 N8N WORKFLOW
+   │
+   ├─► 📥 Webhook Lead
+   │   └─► Reçoit: {name, email, phone, timestamp, source}
+   │
+   ├─► 🔄 Extraire & Formatter
+   │   └─► Crée lead_id, date_fr, status
+   │
+   ├─► ✔️ Validation Données
+   │   ├─► ✅ Valide → Continue
+   │   └─► ❌ Invalide → Erreur 400
+   │
+   ├─► 📊 Google Sheets CRM
+   │   └─► Enregistre le lead
+   │
+   ├─► 📧 Email Client
+   │   └─► Confirmation HTML stylée
+   │
+   ├─► 📧 Email Admin
+   │   └─► Notification nouveau lead
+   │
+   └─► ✅ Réponse Webhook
+       └─► Retourne: {success: true, lead_id, message}
+           │
+           ▼
+4. 👤 UTILISATEUR
+   └─► Voit message de succès
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠️ TECHNOLOGIES UTILISÉES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Frontend:
+  • React 18 (via CDN + Babel)
+  • HTML5 / CSS3
+  • JavaScript ES6+
+  • Responsive Design
+
+Backend/Automation:
+  • n8n (Workflow automation)
+  • Google Sheets (CRM)
+  • SMTP (Emails)
+  • Webhooks (API REST)
+
+Hébergement:
+  • Netlify (Site web)
+  • AWS/n8n Instance (Automation)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ DÉMARRAGE RAPIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DÉPLOYER LE SITE (2 min)
+   → https://app.netlify.com/drop
+   → Glisser-déposer ce dossier
+   → ✅ Site en ligne !
+
+2. IMPORTER WORKFLOW N8N (1 min)
+   → https://n8n.swiss-leads.ch
+   → Import → WORKFLOW_N8N_SWISS_HERITAGE_COMPLET.json
+   → ✅ Workflow importé !
+
+3. CONFIGURER (2 min)
+   → Google Sheets : Créer + copier ID
+   → SMTP Gmail : App Password
+   → Activer workflow (switch ON)
+   → ✅ Prêt !
+
+4. TESTER (30 sec)
+   → Ouvrir test-webhook.html
+   → Ou remplir formulaire site
+   → ✅ Vérifier CRM + emails
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 DONNÉES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FORMAT ENVOYÉ AU WEBHOOK:
+{
+  "name": "Jean Dupont",
+  "email": "jean@example.com",
+  "phone": "+41 79 123 45 67",
+  "timestamp": "2025-02-11T16:00:00.000Z",
+  "source": "swiss-heritage-website"
+}
+
+FORMAT ENREGISTRÉ DANS CRM:
+lead_id     : LPP_jean_at_example_20250211160000
+date        : 11/02/2025 16:00
+nom         : Jean Dupont
+email       : jean@example.com
+telephone   : +41 79 123 45 67
+source      : swiss-heritage-website
+statut      : nouveau
+timestamp   : 2025-02-11T16:00:00.000Z
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 CHECKLIST PRODUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[ ] Site déployé sur Netlify
+[ ] Workflow n8n importé
+[ ] Google Sheets créé et configuré
+[ ] SMTP configuré (Gmail App Password)
+[ ] Workflow activé (switch ON)
+[ ] Test webhook réussi
+[ ] Email client reçu
+[ ] Email admin reçu
+[ ] Lead dans Google Sheets
+[ ] Message de succès sur site web
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 NOTES:
+- L'URL du webhook est: https://n8n.swiss-leads.ch/webhook-test/lpp-form
+- Le workflow est basé sur celui créé pour le projet LPP précédent
+- Tous les emails sont en HTML stylé et responsive
+- La validation des données est faite côté client ET serveur
+- Le CRM est automatiquement mis à jour via Google Sheets
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 PROJET PRÊT POUR LA PRODUCTION !
+
+Pour toute question, consultez:
+  → README.md (documentation complète)
+  → GUIDE_CONFIGURATION_N8N.md (guide détaillé)
+  → DEMARRAGE_RAPIDE.md (quick start)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO -->
+  <title>Swiss Heritage - Retrouvez vos avoirs LPP oubliés | Service gratuit</title>
+  <meta name="description" content="Plus de 10 milliards de francs dorment sur des comptes LPP non réclamés en Suisse. Découvrez gratuitement si vous avez des avoirs oubliés. Service 100% gratuit, sans engagement.">
+  <meta name="keywords" content="LPP, 2ème pilier, avoirs oubliés, libre passage, prévoyance suisse, caisse de pension, retraite suisse, Kala, recherche avoirs">
+  <meta name="author" content="Swiss Heritage - SwissEmpire2 Sàrl">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://swiss-heritage.ch/">
+
+  <!-- Open Graph (Facebook, LinkedIn) -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://swiss-heritage.ch/">
+  <meta property="og:title" content="Swiss Heritage - Retrouvez vos avoirs LPP oubliés">
+  <meta property="og:description" content="Plus de 10 milliards de francs dorment sur des comptes non réclamés. Découvrez gratuitement si vous êtes concerné.">
+  <meta property="og:image" content="https://swiss-heritage.ch/og-image.png">
+  <meta property="og:locale" content="fr_CH">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Swiss Heritage - Retrouvez vos avoirs LPP oubliés">
+  <meta name="twitter:description" content="Plus de 10 milliards de francs dorment sur des comptes non réclamés en Suisse.">
+  <meta name="twitter:image" content="https://swiss-heritage.ch/og-image.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◆</text></svg>">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    ::selection {
+      background: #c9a962;
+      color: #0c192f;
+    }
+
+    /* 3D Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotateX(2deg) rotateY(-2deg); }
+      50% { transform: translateY(-20px) rotateX(-2deg) rotateY(2deg); }
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-15px) rotate(1deg); }
+      66% { transform: translateY(-8px) rotate(-1deg); }
+    }
+
+    @keyframes pulse3d {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(201, 169, 98, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 0 30px 10px rgba(201, 169, 98, 0.15); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes rotateIn {
+      from { opacity: 0; transform: perspective(600px) rotateY(-15deg); }
+      to { opacity: 1; transform: perspective(600px) rotateY(0deg); }
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    @keyframes orbFloat1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(50px, -30px) scale(1.1); }
+      50% { transform: translate(-20px, -60px) scale(0.9); }
+      75% { transform: translate(-40px, -20px) scale(1.05); }
+    }
+
+    @keyframes orbFloat2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(-40px, 20px) scale(0.95); }
+      50% { transform: translate(30px, 40px) scale(1.1); }
+      75% { transform: translate(50px, -10px) scale(1); }
+    }
+
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes borderGlow {
+      0%, 100% { border-color: rgba(201, 169, 98, 0.3); }
+      50% { border-color: rgba(201, 169, 98, 0.6); }
+    }
+
+    @keyframes spin3d {
+      from { transform: perspective(800px) rotateY(0deg); }
+      to { transform: perspective(800px) rotateY(360deg); }
+    }
+
+    @keyframes particleFloat {
+      0%, 100% { opacity: 0; transform: translateY(0) scale(0); }
+      10% { opacity: 1; transform: scale(1); }
+      90% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-100vh) scale(0.5); }
+    }
+
+    .animate-on-scroll {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+
+    .animate-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hover-3d {
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      transform-style: preserve-3d;
+    }
+
+    .hover-3d:hover {
+      transform: perspective(1000px) rotateX(5deg) rotateY(-5deg) translateZ(20px);
+      box-shadow: 20px 20px 60px rgba(0,0,0,0.15), -5px -5px 20px rgba(201, 169, 98, 0.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 968px) {
+      .hero-grid { flex-direction: column !important; }
+      .hero-visual { position: relative !important; right: auto !important; top: auto !important; transform: none !important; margin-top: 40px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .three-col { grid-template-columns: 1fr !important; }
+      .two-col { grid-template-columns: 1fr !important; }
+      .four-col { grid-template-columns: repeat(2, 1fr) !important; }
+      .nav-links { display: none !important; }
+      .cta-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+      .footer-grid { grid-template-columns: 1fr !important; }
+      .footer-links { grid-template-columns: repeat(2, 1fr) !important; }
+      .comparison-grid { grid-template-columns: 1fr !important; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr !important; }
+      .four-col { grid-template-columns: 1fr !important; }
+      .footer-links { grid-template-columns: 1fr !important; }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0c192f; }
+    ::-webkit-scrollbar-thumb { background: #c9a962; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #e8d5a3; }
+
+    /* Form focus states */
+    input:focus, select:focus, textarea:focus {
+      border-color: #c9a962 !important;
+      box-shadow: 0 0 0 3px rgba(201, 169, 98, 0.15) !important;
+      outline: none;
+    }
+  </style>
+
+  <!-- Google Analytics (to configure) -->
+  <!--
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+  -->
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="swiss-heritage-lpp.jsx"></script>
+  <script type="text/babel">
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<SwissHeritageLPP />);
+  </script>
+</body>
+</html>

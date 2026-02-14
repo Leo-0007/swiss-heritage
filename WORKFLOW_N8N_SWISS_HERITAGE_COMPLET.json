@@ -1,0 +1,385 @@
+{
+  "name": "Swiss Heritage - Workflow Principal LPP",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lpp-form",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://swiss-heritage.ch,https://*.netlify.app"
+        }
+      },
+      "id": "webhook-formulaire",
+      "name": "📥 Webhook Formulaire",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 400],
+      "webhookId": "lpp-form"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "lead_id",
+              "value": "=LPP_{{$json.body.email.replace('@', '_at_')}}_{{$now.toFormat('yyyyMMddHHmmss')}}"
+            },
+            {
+              "name": "name",
+              "value": "={{$json.body.name}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$json.body.email}}"
+            },
+            {
+              "name": "phone",
+              "value": "={{$json.body.phone}}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{$json.body.timestamp || $now.toISO()}}"
+            },
+            {
+              "name": "source",
+              "value": "={{$json.body.source || 'website'}}"
+            },
+            {
+              "name": "status",
+              "value": "nouveau"
+            },
+            {
+              "name": "date_fr",
+              "value": "={{$now.toFormat('dd/MM/yyyy HH:mm')}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extraire-donnees",
+      "name": "🔄 Extraire & Formatter",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "VOTRE_GOOGLE_SHEET_ID",
+          "mode": "id",
+          "cachedResultName": "Swiss Heritage - CRM Leads"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Leads"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{$json.lead_id}}",
+            "date": "={{$json.date_fr}}",
+            "nom": "={{$json.name}}",
+            "email": "={{$json.email}}",
+            "telephone": "={{$json.phone}}",
+            "source": "={{$json.source}}",
+            "statut": "={{$json.status}}",
+            "timestamp": "={{$json.timestamp}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "google-sheets-crm",
+      "name": "📊 Enregistrer CRM (Google Sheets)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [650, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "VOTRE_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@swiss-heritage.ch",
+        "toEmail": "={{$json.email}}",
+        "subject": "🏦 Bienvenue chez Swiss Heritage",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; }\n    .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }\n    .header { background: linear-gradient(135deg, #0c192f 0%, #1a2d4a 100%); color: white; padding: 40px 30px; text-align: center; }\n    .logo { font-size: 32px; margin-bottom: 10px; }\n    .content { padding: 40px 30px; }\n    .highlight { color: #c9a962; font-weight: bold; }\n    .steps { background: #fafafa; padding: 20px; border-radius: 8px; margin: 20px 0; }\n    .step { margin: 15px 0; padding-left: 25px; position: relative; }\n    .step:before { content: '✓'; position: absolute; left: 0; color: #4ade80; font-weight: bold; }\n    .cta { text-align: center; margin: 30px 0; }\n    .button { display: inline-block; background: linear-gradient(135deg, #c9a962 0%, #e8d5a3 100%); color: #0c192f; padding: 15px 35px; border-radius: 8px; text-decoration: none; font-weight: bold; }\n    .footer { background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #888; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <div class=\"logo\">◆ Swiss Heritage</div>\n      <h1 style=\"margin: 0; font-size: 24px;\">Bienvenue !</h1>\n    </div>\n    <div class=\"content\">\n      <p>Bonjour <strong>{{$json.name}}</strong>,</p>\n      <p>Merci pour votre confiance ! Nous avons bien reçu votre demande de recherche d'avoirs LPP.</p>\n      \n      <div class=\"steps\">\n        <h3 style=\"margin-top: 0; color: #0c192f;\">Prochaines étapes :</h3>\n        <div class=\"step\">Notre équipe analyse votre dossier</div>\n        <div class=\"step\">Nous lançons la recherche auprès de <span class=\"highlight\">1500+ instituts</span></div>\n        <div class=\"step\">Vous recevrez un rapport détaillé sous <span class=\"highlight\">90 jours</span></div>\n      </div>\n\n      <p><strong>Rappel :</strong> Ce service est <span class=\"highlight\">100% gratuit</span> et sans engagement.</p>\n\n      <div class=\"cta\">\n        <p style=\"margin-bottom: 15px;\">Des questions ? Notre équipe est à votre disposition :</p>\n        <a href=\"mailto:contact@swiss-heritage.ch\" class=\"button\">Nous contacter</a>\n      </div>\n\n      <p style=\"margin-top: 30px; font-size: 14px; color: #666;\">\n        <strong>Vos informations :</strong><br>\n        📧 Email : {{$json.email}}<br>\n        📱 Téléphone : {{$json.phone}}<br>\n        🆔 Référence : {{$json.lead_id}}\n      </p>\n    </div>\n    <div class=\"footer\">\n      <p>Swiss Heritage SA - Experts en prévoyance LPP<br>\n      Genève, Suisse 🇨🇭</p>\n      <p style=\"margin-top: 10px;\">\n        🔒 Vos données sont sécurisées et ne seront jamais partagées\n      </p>\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "email-client",
+      "name": "📧 Email Client (Confirmation)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [850, 300],
+      "credentials": {
+        "smtp": {
+          "id": "VOTRE_SMTP_ID",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@swiss-heritage.ch",
+        "toEmail": "admin@swiss-heritage.ch",
+        "subject": "🚨 Nouveau Lead LPP - {{$json.name}}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }\n    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; padding: 30px; }\n    .header { background: #0c192f; color: white; padding: 20px; border-radius: 8px 8px 0 0; margin: -30px -30px 20px; }\n    .info-box { background: #fafafa; padding: 15px; border-left: 4px solid #c9a962; margin: 15px 0; }\n    .label { color: #666; font-size: 12px; text-transform: uppercase; margin-top: 10px; }\n    .value { color: #0c192f; font-size: 16px; font-weight: bold; margin: 5px 0 15px; }\n    .urgent { background: #fef3c7; border-left-color: #f59e0b; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h2 style=\"margin: 0;\">🔔 Nouveau Lead LPP</h2>\n    </div>\n    \n    <div class=\"info-box urgent\">\n      <p style=\"margin: 0; font-weight: bold;\">⚡ Action requise : Contacter sous 24h</p>\n    </div>\n\n    <div class=\"info-box\">\n      <div class=\"label\">Nom complet</div>\n      <div class=\"value\">{{$json.name}}</div>\n      \n      <div class=\"label\">Email</div>\n      <div class=\"value\">{{$json.email}}</div>\n      \n      <div class=\"label\">Téléphone</div>\n      <div class=\"value\">{{$json.phone}}</div>\n      \n      <div class=\"label\">Date & Heure</div>\n      <div class=\"value\">{{$json.date_fr}}</div>\n      \n      <div class=\"label\">Source</div>\n      <div class=\"value\">{{$json.source}}</div>\n      \n      <div class=\"label\">ID Lead</div>\n      <div class=\"value\" style=\"font-size: 12px; color: #666;\">{{$json.lead_id}}</div>\n    </div>\n\n    <p style=\"text-align: center; margin-top: 30px;\">\n      <a href=\"https://docs.google.com/spreadsheets/d/VOTRE_SHEET_ID\" \n         style=\"display: inline-block; background: #0c192f; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: bold;\">\n        📊 Ouvrir le CRM\n      </a>\n    </p>\n  </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "email-admin",
+      "name": "📧 Email Admin (Notification)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [850, 500],
+      "credentials": {
+        "smtp": {
+          "id": "VOTRE_SMTP_ID",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.make.com/webhook/VOTRE_WEBHOOK_MAKE",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"lead_id\": \"{{$json.lead_id}}\",\n  \"name\": \"{{$json.name}}\",\n  \"email\": \"{{$json.email}}\",\n  \"phone\": \"{{$json.phone}}\",\n  \"timestamp\": \"{{$json.timestamp}}\",\n  \"source\": \"{{$json.source}}\",\n  \"action\": \"new_lpp_lead\"\n}",
+        "options": {}
+      },
+      "id": "webhook-make",
+      "name": "🔗 Webhook Make.com (Optionnel)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [850, 700],
+      "disabled": true,
+      "notes": "Décochez 'disabled' si vous utilisez Make.com"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Votre demande a été enregistrée avec succès. Vous recevrez un email de confirmation.\",\n  \"lead_id\": \"{{$json.lead_id}}\",\n  \"next_steps\": [\n    \"Vérifiez votre email (y compris spam)\",\n    \"Notre équipe vous contactera sous 24-48h\",\n    \"Préparez vos documents LPP si vous en avez\"\n  ]\n}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              }
+            ]
+          }
+        }
+      },
+      "id": "reponse-webhook",
+      "name": "✅ Réponse Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.email}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "leftValue": "={{$json.name}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "leftValue": "={{$json.phone}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "validation-donnees",
+      "name": "✔️ Validation Données",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [450, 250],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Données invalides\",\n  \"message\": \"Veuillez remplir tous les champs obligatoires (nom, email, téléphone)\"\n}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "erreur-validation",
+      "name": "❌ Erreur Validation",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [650, 150]
+    }
+  ],
+  "connections": {
+    "📥 Webhook Formulaire": {
+      "main": [
+        [
+          {
+            "node": "🔄 Extraire & Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Extraire & Formatter": {
+      "main": [
+        [
+          {
+            "node": "✔️ Validation Données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✔️ Validation Données": {
+      "main": [
+        [
+          {
+            "node": "📊 Enregistrer CRM (Google Sheets)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "❌ Erreur Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Enregistrer CRM (Google Sheets)": {
+      "main": [
+        [
+          {
+            "node": "📧 Email Client (Confirmation)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📧 Email Admin (Notification)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🔗 Webhook Make.com (Optionnel)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📧 Email Client (Confirmation)": {
+      "main": [
+        [
+          {
+            "node": "✅ Réponse Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📧 Email Admin (Notification)": {
+      "main": [
+        [
+          {
+            "node": "✅ Réponse Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔗 Webhook Make.com (Optionnel)": {
+      "main": [
+        [
+          {
+            "node": "✅ Réponse Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-02-11T16:00:00.000Z",
+      "updatedAt": "2025-02-11T16:00:00.000Z",
+      "id": "1",
+      "name": "LPP"
+    },
+    {
+      "createdAt": "2025-02-11T16:00:00.000Z",
+      "updatedAt": "2025-02-11T16:00:00.000Z",
+      "id": "2",
+      "name": "Swiss Heritage"
+    }
+  ],
+  "pinData": {},
+  "versionId": "1.0.0"
+}

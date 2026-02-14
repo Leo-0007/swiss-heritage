@@ -1,0 +1,2 @@
+lead_id,date,nom,email,telephone,source,statut,timestamp
+LPP_test_at_example_20250211160000,11/02/2025 16:00,Jean Dupont (TEST),test@example.com,+41 79 123 45 67,test,nouveau,2025-02-11T16:00:00.000Z
