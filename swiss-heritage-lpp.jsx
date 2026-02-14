@@ -1003,6 +1003,187 @@ function SwissHeritageLPP() {
   );
 
   // ==============================
+  // CALCULATEUR LPP
+  // ==============================
+  const LPPCalculator = ({ navigateTo, trackEvent }) => {
+    const [calcStep, setCalcStep] = useState(0);
+    const [calcData, setCalcData] = useState({ nbEmployeurs: null, annees: null, salaire: null });
+    const [calcResult, setCalcResult] = useState(null);
+
+    const handleCalcSelect = (key, value) => {
+      const newData = { ...calcData, [key]: value };
+      setCalcData(newData);
+
+      if (key === 'nbEmployeurs') { setCalcStep(1); trackEvent('calc_step', { step: 1, value }); }
+      if (key === 'annees') { setCalcStep(2); trackEvent('calc_step', { step: 2, value }); }
+      if (key === 'salaire') {
+        // Calcul estimation
+        const nbEmpl = newData.nbEmployeurs;
+        const annees = newData.annees;
+        const salaire = newData.salaire;
+
+        // Formule simplifiee : (nb_changements - 1) * probabilite * montant_moyen_annuel_LPP
+        const changements = nbEmpl === '1-2' ? 1 : nbEmpl === '3-5' ? 3 : nbEmpl === '6-10' ? 6 : 10;
+        const anneesNum = annees === '5-10' ? 7 : annees === '10-20' ? 15 : annees === '20-30' ? 25 : 35;
+        const salaireNum = salaire === '40-60' ? 50000 : salaire === '60-80' ? 70000 : salaire === '80-100' ? 90000 : 120000;
+
+        // Credits LPP annuels approximatifs (7-18% du salaire coordonne selon age)
+        const salaireCoord = Math.max(0, salaireNum - 25725); // Deduction de coordination 2024
+        const tauxMoyen = 0.12; // taux moyen cotisation LPP
+        const cotisAnnuelle = salaireCoord * tauxMoyen;
+
+        // Estimation : nb changements * probabilite perte * cotisations moyennes par changement
+        const probPerte = 0.15; // 15% de probabilite par changement
+        const montantEstime = Math.round(changements * probPerte * cotisAnnuelle * (anneesNum / changements));
+        const montantMin = Math.round(montantEstime * 0.5);
+        const montantMax = Math.round(montantEstime * 1.8);
+
+        setCalcResult({ min: montantMin, max: montantMax });
+        setCalcStep(3);
+        trackEvent('calc_complete', { estimation_min: montantMin, estimation_max: montantMax });
+      }
+    };
+
+    const calcCardStyle = {
+      maxWidth: '700px',
+      margin: '40px auto 0',
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid rgba(201, 169, 98, 0.2)',
+      borderRadius: '20px',
+      padding: '40px',
+      backdropFilter: 'blur(10px)',
+    };
+
+    const calcBtnStyle = (isActive) => ({
+      padding: '14px 24px',
+      borderRadius: '12px',
+      border: isActive ? '2px solid #c9a962' : '1px solid rgba(255,255,255,0.15)',
+      background: isActive ? 'rgba(201, 169, 98, 0.15)' : 'rgba(255,255,255,0.03)',
+      color: '#fff',
+      cursor: 'pointer',
+      fontSize: '15px',
+      fontWeight: '500',
+      transition: 'all 0.3s ease',
+      textAlign: 'center',
+      flex: 1,
+      minWidth: '120px',
+    });
+
+    const resetCalc = () => { setCalcStep(0); setCalcData({ nbEmployeurs: null, annees: null, salaire: null }); setCalcResult(null); };
+
+    if (calcStep === 3 && calcResult) {
+      return (
+        <div style={calcCardStyle}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎯</div>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', color: '#fff', marginBottom: '8px' }}>
+              Estimation de vos avoirs potentiels
+            </h3>
+            <div style={{
+              fontSize: '36px', fontWeight: '700', color: '#c9a962',
+              fontFamily: "'Playfair Display', serif",
+              margin: '24px 0',
+            }}>
+              {calcResult.min.toLocaleString('fr-CH')} - {calcResult.max.toLocaleString('fr-CH')} CHF
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '32px', lineHeight: '1.6' }}>
+              Cette estimation est basee sur des moyennes statistiques. Le montant reel peut varier.
+              Pour connaitre votre montant exact, lancez une recherche gratuite.
+            </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="#contact" style={{
+                ...styles.primaryBtn,
+                fontSize: '16px',
+                padding: '16px 32px',
+              }}>
+                Lancer ma recherche gratuite →
+              </a>
+              <button onClick={resetCalc} style={{
+                padding: '16px 24px',
+                borderRadius: '12px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'transparent',
+                color: 'rgba(255,255,255,0.7)',
+                cursor: 'pointer',
+                fontSize: '14px',
+              }}>
+                Recalculer
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const questions = [
+      {
+        label: "Combien d'employeurs avez-vous eus ?",
+        key: 'nbEmployeurs',
+        options: [
+          { label: '1 a 2', value: '1-2' },
+          { label: '3 a 5', value: '3-5' },
+          { label: '6 a 10', value: '6-10' },
+          { label: 'Plus de 10', value: '10+' },
+        ]
+      },
+      {
+        label: "Depuis combien d'annees travaillez-vous ?",
+        key: 'annees',
+        options: [
+          { label: '5 - 10 ans', value: '5-10' },
+          { label: '10 - 20 ans', value: '10-20' },
+          { label: '20 - 30 ans', value: '20-30' },
+          { label: 'Plus de 30 ans', value: '30+' },
+        ]
+      },
+      {
+        label: "Quel est votre salaire annuel brut approximatif ?",
+        key: 'salaire',
+        options: [
+          { label: "40'000 - 60'000", value: '40-60' },
+          { label: "60'000 - 80'000", value: '60-80' },
+          { label: "80'000 - 100'000", value: '80-100' },
+          { label: "Plus de 100'000", value: '100+' },
+        ]
+      },
+    ];
+
+    const currentQ = questions[calcStep];
+    if (!currentQ) return null;
+
+    return (
+      <div style={calcCardStyle}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{
+              flex: 1, height: '4px', borderRadius: '2px',
+              background: i <= calcStep ? '#c9a962' : 'rgba(255,255,255,0.1)',
+              transition: 'background 0.3s ease',
+            }}></div>
+          ))}
+        </div>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '20px', color: '#fff', marginBottom: '24px', textAlign: 'center' }}>
+          {currentQ.label}
+        </h3>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {currentQ.options.map(opt => (
+            <button key={opt.value} onClick={() => handleCalcSelect(currentQ.key, opt.value)}
+              style={calcBtnStyle(calcData[currentQ.key] === opt.value)}
+              onMouseEnter={e => { e.target.style.borderColor = '#c9a962'; e.target.style.background = 'rgba(201, 169, 98, 0.1)'; }}
+              onMouseLeave={e => { if (calcData[currentQ.key] !== opt.value) { e.target.style.borderColor = 'rgba(255,255,255,0.15)'; e.target.style.background = 'rgba(255,255,255,0.03)'; } }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '13px', marginTop: '24px' }}>
+          Question {calcStep + 1} sur 3
+        </p>
+      </div>
+    );
+  };
+
+  // ==============================
   // RENDER (page principale)
   // ==============================
   return (
@@ -1023,7 +1204,7 @@ function SwissHeritageLPP() {
           </div>
           <div className="nav-links" style={styles.navLinks}>
             <a href="#process" style={styles.navLink}>Processus</a>
-            <a href="#advantages" style={styles.navLink}>Avantages</a>
+            <a href="#calculateur" style={styles.navLink}>Calculateur</a>
             <a href="#testimonials" style={styles.navLink}>Temoignages</a>
             <a href="#faq" style={styles.navLink}>FAQ</a>
           </div>
@@ -1077,7 +1258,7 @@ function SwissHeritageLPP() {
             animation: 'fadeInUp 0.3s ease-out',
           }}>
             <a href="#process" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>Processus</a>
-            <a href="#advantages" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>Avantages</a>
+            <a href="#calculateur" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>Calculateur</a>
             <a href="#testimonials" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>Temoignages</a>
             <a href="#faq" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>FAQ</a>
             <a href="#contact" style={{...styles.navCta, fontSize: '18px', padding: '16px 32px'}} onClick={() => setMobileMenuOpen(false)}>
@@ -1306,6 +1487,21 @@ function SwissHeritageLPP() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ========== LPP CALCULATOR SECTION ========== */}
+      <section id="calculateur" style={{...styles.cta, background: 'linear-gradient(180deg, #0a1628 0%, #111d35 100%)'}} data-animate>
+        <div style={styles.sectionInner}>
+          <div style={styles.sectionTag}>Outil gratuit</div>
+          <h2 style={styles.sectionTitle}>
+            Estimez vos avoirs{' '}
+            <span style={styles.highlight}>potentiellement oublies</span>
+          </h2>
+          <p style={styles.sectionSubtitle}>
+            Repondez a 3 questions pour obtenir une estimation du montant qui pourrait dormir sur des comptes de libre passage.
+          </p>
+          <LPPCalculator navigateTo={navigateTo} trackEvent={trackEvent} />
         </div>
       </section>
 
