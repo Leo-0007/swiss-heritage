@@ -167,7 +167,7 @@ Voir `/docs/KALA_ONBOARDING.md` pour la checklist complete.
 
 ## 5. ETAT DU PROJET
 
-### Site Web (Claude Code) - v3.3 FAIT
+### Site Web (Claude Code) - v3.5 FAIT
 - [x] Design premium avec effets 3D
 - [x] Formulaire multi-etapes (2 steps)
 - [x] Checkbox consentement LPD (non pre-cochee)
@@ -179,6 +179,11 @@ Voir `/docs/KALA_ONBOARDING.md` pour la checklist complete.
 - [x] Strategie acquisition (5 personas, canaux valides)
 - [x] Landing pages personas (chomage, frontalier, retraite, changement-emploi)
 - [x] Routage hash URL (swiss-heritage.ch/#chomage, #frontalier, etc.)
+- [x] Schema.org JSON-LD (Organization + WebSite)
+- [x] Titres et meta descriptions dynamiques par page
+- [x] Menu hamburger mobile + menu plein ecran
+- [x] Accessibilite (ARIA labels, skip nav, aria-expanded)
+- [x] Calculateur LPP interactif (3 etapes, estimation CHF)
 - [ ] Activation Google Analytics 4 (Measurement ID de Lionel requis)
 
 ### Workflows n8n (OpenClaw) - Mode A d'abord
@@ -338,6 +343,15 @@ privacy@swiss-heritage.ch.
 ---
 
 ## 11. CHANGELOG
+
+### 2026-02-14 - v3.5 (Claude Code) - CALCULATEUR LPP + MOBILE + ACCESSIBILITE
+- Calculateur LPP interactif 3 etapes (employeurs, annees, salaire)
+- Estimation CHF des avoirs potentiellement oublies
+- Menu hamburger mobile avec overlay plein ecran anime
+- Accessibilite : skip-to-content, ARIA labels, aria-expanded
+- Schema.org JSON-LD (Organization + WebSite)
+- Titres et meta descriptions dynamiques par landing page
+- Lien calculateur dans navigation desktop et mobile
 
 ### 2026-02-14 - v3.4 (Claude Code) - LANDING PAGES PERSONAS + HASH ROUTING
 - 4 landing pages personas : chomage, frontalier, retraite, changement-emploi
