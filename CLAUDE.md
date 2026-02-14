@@ -173,8 +173,8 @@ Voir `/docs/KALA_ONBOARDING.md` pour la checklist complete.
 - [x] Checkbox consentement LPD (non pre-cochee)
 - [x] Stats, FAQ, comparaison, temoignages
 - [x] Footer conforme + SEO + Responsive
-- [ ] Page politique de confidentialite
-- [ ] Page mentions legales / CGU
+- [x] Page politique de confidentialite
+- [x] Page mentions legales / CGU
 - [ ] Google Analytics 4
 
 ### Workflows n8n (OpenClaw) - Mode A d'abord

@@ -15,6 +15,7 @@ function SwissHeritageLPP() {
   const [formMessage, setFormMessage] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visibleSections, setVisibleSections] = useState({});
+  const [currentPage, setCurrentPage] = useState('home'); // home | privacy | legal | cgu
   const sectionRefs = useRef({});
 
   // Scroll-based animations with IntersectionObserver
@@ -226,8 +227,290 @@ function SwissHeritageLPP() {
     { icon: '🔍', label: "Simple curiosite" }
   ];
 
+  // Navigation vers page legale
+  const navigateTo = (page) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
+
   // ==============================
-  // RENDER
+  // PAGES LEGALES
+  // ==============================
+
+  const LegalPageLayout = ({ title, children }) => (
+    <div style={styles.container}>
+      <nav style={{
+        ...styles.nav,
+        background: 'rgba(12, 25, 47, 0.98)',
+        boxShadow: '0 4px 30px rgba(0,0,0,0.3)',
+        backdropFilter: 'blur(20px)',
+      }}>
+        <div style={styles.navContent}>
+          <div style={styles.logo} onClick={() => navigateTo('home')} role="button" tabIndex={0}>
+            <div style={styles.logoIconWrapper}>
+              <span style={styles.logoIcon}>&#9670;</span>
+            </div>
+            <span style={{...styles.logoText, cursor: 'pointer'}}>Swiss Heritage</span>
+          </div>
+          <div className="nav-links" style={styles.navLinks}>
+            <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('home'); }} style={styles.navLink}>Accueil</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('home'); }} style={styles.navCta}>Recherche gratuite</a>
+          </div>
+        </div>
+      </nav>
+      <div style={styles.legalPage}>
+        <div style={styles.legalContainer}>
+          <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('home'); }} style={styles.legalBack}>&#8592; Retour au site</a>
+          <h1 style={styles.legalTitle}>{title}</h1>
+          <div style={styles.legalContent}>
+            {children}
+          </div>
+        </div>
+      </div>
+      <footer style={styles.footer}>
+        <div style={styles.footerContent}>
+          <div style={styles.footerBottom}>
+            <div style={styles.footerCopy}>
+              &copy; {new Date().getFullYear()} SwissEmpire2 Sarl. Tous droits reserves.
+            </div>
+            <div style={styles.footerCerts}>
+              <span style={styles.footerCert}>&#128274; Conforme LPD</span>
+              <span style={styles.footerCert}>&#127464;&#127469; Hebergement Suisse</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+
+  // PAGE : Politique de confidentialite
+  if (currentPage === 'privacy') return (
+    <LegalPageLayout title="Politique de Confidentialite">
+      <p style={styles.legalMeta}>Derniere mise a jour : fevrier 2026</p>
+
+      <h2 style={styles.legalH2}>1. Responsable du traitement</h2>
+      <p style={styles.legalP}>
+        SwissEmpire2 Sarl<br />
+        CHE-489.583.893<br />
+        Moutier, Suisse<br />
+        E-mail : <a href="mailto:privacy@swiss-heritage.ch" style={styles.legalLink}>privacy@swiss-heritage.ch</a>
+      </p>
+
+      <h2 style={styles.legalH2}>2. Donnees collectees</h2>
+      <p style={styles.legalP}>Dans le cadre de votre demande de recherche d'avoirs LPP, nous collectons les donnees suivantes :</p>
+      <ul style={styles.legalUl}>
+        <li style={styles.legalLi}>Donnees d'identification : prenom, nom, date de naissance, nationalite</li>
+        <li style={styles.legalLi}>Donnees de contact : adresse e-mail, numero de telephone</li>
+        <li style={styles.legalLi}>Donnees professionnelles : canton de residence, statut d'emploi, nombre d'employeurs</li>
+        <li style={styles.legalLi}>Donnees techniques : adresse IP, type de navigateur (collecte automatique)</li>
+      </ul>
+
+      <h2 style={styles.legalH2}>3. Finalite du traitement</h2>
+      <p style={styles.legalP}>Vos donnees sont traitees exclusivement pour :</p>
+      <ul style={styles.legalUl}>
+        <li style={styles.legalLi}>Le traitement de votre demande de recherche d'avoirs LPP</li>
+        <li style={styles.legalLi}>La transmission a notre partenaire technologique (Kala) pour effectuer la recherche aupres de la Centrale du 2eme pilier</li>
+        <li style={styles.legalLi}>La communication relative a l'avancement de votre dossier (telephone, e-mail, WhatsApp)</li>
+        <li style={styles.legalLi}>L'amelioration de nos services</li>
+      </ul>
+
+      <h2 style={styles.legalH2}>4. Base juridique</h2>
+      <p style={styles.legalP}>
+        Le traitement de vos donnees repose sur votre consentement explicite, recueilli via la case a cocher du formulaire
+        de demande (art. 6 al. 6 et art. 31 al. 1 nLPD).
+      </p>
+
+      <h2 style={styles.legalH2}>5. Transmission a des tiers</h2>
+      <p style={styles.legalP}>Vos donnees peuvent etre transmises a :</p>
+      <ul style={styles.legalUl}>
+        <li style={styles.legalLi}><strong>Kala (kala.ch)</strong> : notre partenaire technologique pour la recherche LPP aupres de la Centrale du 2eme pilier</li>
+        <li style={styles.legalLi}><strong>Prestataires techniques</strong> : hebergement et envoi d'e-mails (hebergement en Suisse ou UE)</li>
+      </ul>
+      <p style={styles.legalP}>
+        Aucune donnee n'est vendue ou cedee a des tiers a des fins de marketing.
+        Aucun transfert de donnees hors de la Suisse ou de l'Espace economique europeen n'est effectue sans garanties appropriees.
+      </p>
+
+      <h2 style={styles.legalH2}>6. Duree de conservation</h2>
+      <ul style={styles.legalUl}>
+        <li style={styles.legalLi}>Leads non convertis : 12 mois apres la demande, puis suppression</li>
+        <li style={styles.legalLi}>Dossiers avec avoirs retrouves : duree legale requise (10 ans pour les documents comptables)</li>
+        <li style={styles.legalLi}>Donnees techniques (logs) : 90 jours</li>
+      </ul>
+
+      <h2 style={styles.legalH2}>7. Vos droits</h2>
+      <p style={styles.legalP}>Conformement a la nouvelle Loi federale sur la protection des donnees (nLPD), vous disposez des droits suivants :</p>
+      <ul style={styles.legalUl}>
+        <li style={styles.legalLi}><strong>Droit d'acces</strong> : obtenir confirmation du traitement de vos donnees et en recevoir une copie</li>
+        <li style={styles.legalLi}><strong>Droit de rectification</strong> : demander la correction de donnees inexactes</li>
+        <li style={styles.legalLi}><strong>Droit a l'effacement</strong> : demander la suppression de vos donnees</li>
+        <li style={styles.legalLi}><strong>Droit a la portabilite</strong> : recevoir vos donnees dans un format structure</li>
+        <li style={styles.legalLi}><strong>Droit de retrait du consentement</strong> : retirer votre consentement a tout moment</li>
+      </ul>
+      <p style={styles.legalP}>
+        Pour exercer ces droits, contactez-nous a :
+        <a href="mailto:privacy@swiss-heritage.ch" style={styles.legalLink}> privacy@swiss-heritage.ch</a>
+      </p>
+
+      <h2 style={styles.legalH2}>8. Securite des donnees</h2>
+      <p style={styles.legalP}>
+        Nous mettons en oeuvre des mesures techniques et organisationnelles appropriees pour proteger vos donnees contre tout acces
+        non autorise, toute modification, divulgation ou destruction. Les communications sont chiffrees (HTTPS/TLS).
+      </p>
+
+      <h2 style={styles.legalH2}>9. Cookies</h2>
+      <p style={styles.legalP}>
+        Notre site utilise uniquement des cookies essentiels au fonctionnement du service.
+        Aucun cookie de tracking publicitaire n'est utilise. En cas d'utilisation d'outils d'analyse (ex. Google Analytics),
+        l'anonymisation des adresses IP est activee.
+      </p>
+
+      <h2 style={styles.legalH2}>10. Autorite de surveillance</h2>
+      <p style={styles.legalP}>
+        En cas de litige, vous pouvez vous adresser au Prepose federal a la protection des donnees et a la transparence (PFPDT) :<br />
+        <a href="https://www.edoeb.admin.ch" target="_blank" rel="noopener noreferrer" style={styles.legalLink}>www.edoeb.admin.ch</a>
+      </p>
+    </LegalPageLayout>
+  );
+
+  // PAGE : Mentions legales
+  if (currentPage === 'legal') return (
+    <LegalPageLayout title="Mentions Legales">
+      <h2 style={styles.legalH2}>Editeur du site</h2>
+      <p style={styles.legalP}>
+        SwissEmpire2 Sarl<br />
+        Numero IDE : CHE-489.583.893<br />
+        Siege social : Moutier, Suisse<br />
+        E-mail : <a href="mailto:info@swiss-heritage.ch" style={styles.legalLink}>info@swiss-heritage.ch</a>
+      </p>
+
+      <h2 style={styles.legalH2}>Nature du service</h2>
+      <p style={styles.legalP}>
+        Swiss Heritage est un service de recherche administrative d'avoirs de prevoyance professionnelle (LPP / 2eme pilier).
+        La recherche est effectuee par notre partenaire technologique Kala (kala.ch) aupres de la Centrale du 2eme pilier
+        et des institutions de prevoyance suisses.
+      </p>
+
+      <h2 style={styles.legalH2}>Limitation de responsabilite</h2>
+      <p style={styles.legalP}>
+        Swiss Heritage fournit un service d'information et de mise en relation. Ce service ne constitue en aucun cas
+        du conseil financier au sens de la Loi federale sur les services financiers (LSFin).
+        Pour tout conseil en placement ou en prevoyance, veuillez consulter un conseiller financier autorise par la FINMA.
+      </p>
+      <p style={styles.legalP}>
+        SwissEmpire2 Sarl decline toute responsabilite quant a l'exactitude, l'exhaustivite ou l'actualite des informations
+        publiees sur ce site. Les resultats de la recherche LPP sont fournis par des tiers (institutions de prevoyance, Centrale
+        du 2eme pilier) et SwissEmpire2 Sarl ne saurait en garantir l'exactitude.
+      </p>
+
+      <h2 style={styles.legalH2}>Propriete intellectuelle</h2>
+      <p style={styles.legalP}>
+        L'ensemble du contenu de ce site (textes, images, graphismes, logo, icones) est la propriete de SwissEmpire2 Sarl
+        ou de ses partenaires et est protege par les lois suisses et internationales relatives a la propriete intellectuelle.
+        Toute reproduction, meme partielle, est soumise a autorisation prealable.
+      </p>
+
+      <h2 style={styles.legalH2}>Hebergement</h2>
+      <p style={styles.legalP}>
+        Site heberge par Netlify, Inc.<br />
+        Donnees traitees conformement a la legislation suisse sur la protection des donnees (nLPD).
+      </p>
+
+      <h2 style={styles.legalH2}>Droit applicable et for juridique</h2>
+      <p style={styles.legalP}>
+        Le present site et ses conditions d'utilisation sont regis par le droit suisse.
+        Le for juridique exclusif est Moutier, canton de Berne, Suisse.
+      </p>
+    </LegalPageLayout>
+  );
+
+  // PAGE : Conditions generales d'utilisation (CGU)
+  if (currentPage === 'cgu') return (
+    <LegalPageLayout title="Conditions Generales d'Utilisation">
+      <p style={styles.legalMeta}>Version en vigueur depuis fevrier 2026</p>
+
+      <h2 style={styles.legalH2}>1. Objet</h2>
+      <p style={styles.legalP}>
+        Les presentes Conditions Generales d'Utilisation (CGU) regissent l'utilisation du site swiss-heritage.ch
+        et du service de recherche d'avoirs LPP propose par SwissEmpire2 Sarl.
+      </p>
+
+      <h2 style={styles.legalH2}>2. Description du service</h2>
+      <p style={styles.legalP}>
+        Swiss Heritage propose un service de recherche administrative d'avoirs de prevoyance professionnelle (LPP)
+        non reclames. Le service comprend :
+      </p>
+      <ul style={styles.legalUl}>
+        <li style={styles.legalLi}>La collecte de vos informations via un formulaire en ligne</li>
+        <li style={styles.legalLi}>La transmission de votre demande a notre partenaire technologique Kala pour effectuer la recherche</li>
+        <li style={styles.legalLi}>La communication des resultats de la recherche</li>
+        <li style={styles.legalLi}>L'accompagnement dans le processus de rapatriement des avoirs retrouves</li>
+      </ul>
+
+      <h2 style={styles.legalH2}>3. Tarification</h2>
+      <p style={styles.legalP}>
+        La recherche d'avoirs LPP est gratuite. En cas de rapatriement effectif d'avoirs retrouves,
+        des frais de 3% sont appliques sur le montant rapatrie. Ces frais sont directement deduits du capital transfere.
+        Aucune facture supplementaire n'est emise.
+      </p>
+
+      <h2 style={styles.legalH2}>4. Obligations de l'utilisateur</h2>
+      <p style={styles.legalP}>L'utilisateur s'engage a :</p>
+      <ul style={styles.legalUl}>
+        <li style={styles.legalLi}>Fournir des informations exactes et completes dans le formulaire de demande</li>
+        <li style={styles.legalLi}>Etre le titulaire des avoirs recherches ou disposer d'une procuration valable</li>
+        <li style={styles.legalLi}>Ne pas utiliser le service a des fins frauduleuses ou illicites</li>
+        <li style={styles.legalLi}>Informer Swiss Heritage de tout changement de coordonnees</li>
+      </ul>
+
+      <h2 style={styles.legalH2}>5. Obligations de Swiss Heritage</h2>
+      <p style={styles.legalP}>Swiss Heritage s'engage a :</p>
+      <ul style={styles.legalUl}>
+        <li style={styles.legalLi}>Traiter chaque demande dans un delai raisonnable</li>
+        <li style={styles.legalLi}>Transmettre les informations au partenaire technologique de maniere securisee</li>
+        <li style={styles.legalLi}>Informer l'utilisateur des resultats de la recherche</li>
+        <li style={styles.legalLi}>Proteger les donnees personnelles conformement a la nLPD</li>
+      </ul>
+
+      <h2 style={styles.legalH2}>6. Delais</h2>
+      <p style={styles.legalP}>
+        Le delai habituel pour obtenir les resultats d'une recherche LPP est de 2 a 3 mois.
+        Ce delai depend des institutions de prevoyance sollicitees et de la Centrale du 2eme pilier.
+        Swiss Heritage ne garantit aucun delai specifique et ne saurait etre tenu responsable des retards
+        occasionnes par les institutions tierces.
+      </p>
+
+      <h2 style={styles.legalH2}>7. Absence de garantie de resultat</h2>
+      <p style={styles.legalP}>
+        Swiss Heritage ne garantit pas que la recherche aboutira a la decouverte d'avoirs.
+        Le service consiste en une demarche de recherche administrative dont le resultat depend
+        de l'historique professionnel de l'utilisateur et des informations detenues par les institutions de prevoyance.
+      </p>
+
+      <h2 style={styles.legalH2}>8. Resiliation</h2>
+      <p style={styles.legalP}>
+        L'utilisateur peut retirer son consentement et demander l'arret du traitement de sa demande a tout moment
+        en ecrivant a <a href="mailto:privacy@swiss-heritage.ch" style={styles.legalLink}>privacy@swiss-heritage.ch</a>.
+        En cas de resiliation, les donnees seront traitees conformement a la politique de confidentialite.
+      </p>
+
+      <h2 style={styles.legalH2}>9. Modification des CGU</h2>
+      <p style={styles.legalP}>
+        SwissEmpire2 Sarl se reserve le droit de modifier les presentes CGU a tout moment.
+        Les utilisateurs seront informes de toute modification substantielle. La version en vigueur
+        est celle publiee sur le site au moment de l'utilisation du service.
+      </p>
+
+      <h2 style={styles.legalH2}>10. Droit applicable</h2>
+      <p style={styles.legalP}>
+        Les presentes CGU sont regies par le droit suisse. Tout litige sera soumis
+        a la competence exclusive des tribunaux de Moutier, canton de Berne, Suisse.
+      </p>
+    </LegalPageLayout>
+  );
+
+  // ==============================
+  // RENDER (page principale)
   // ==============================
   return (
     <div style={styles.container}>
@@ -747,8 +1030,9 @@ function SwissHeritageLPP() {
                         <span style={styles.consentText}>
                           J'accepte que SwissEmpire2 Sarl me contacte par telephone, WhatsApp et/ou
                           e-mail dans le cadre de ma demande de recherche d'avoirs LPP. Mes donnees
-                          seront traitees conformement a la politique de confidentialite et pourront
-                          etre transmises aux prestataires de recherche LPP dans le cadre de cette
+                          seront traitees conformement a la{' '}
+                          <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigateTo('privacy'); }} style={{color: '#c9a962', textDecoration: 'underline'}}>politique de confidentialite</a>
+                          {' '}et pourront etre transmises aux prestataires de recherche LPP dans le cadre de cette
                           demarche. Je peux retirer mon consentement a tout moment en ecrivant a
                           privacy@swiss-heritage.ch.
                         </span>
@@ -824,10 +1108,10 @@ function SwissHeritageLPP() {
               </div>
               <div style={styles.footerCol}>
                 <h4 style={styles.footerColTitle}>Legal</h4>
-                <a href="#" style={styles.footerLink}>Conditions generales</a>
-                <a href="#" style={styles.footerLink}>Politique de confidentialite</a>
-                <a href="#" style={styles.footerLink}>Mentions legales</a>
-                <a href="#" style={styles.footerLink}>Droit de suppression</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('cgu'); }} style={styles.footerLink}>Conditions generales</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('privacy'); }} style={styles.footerLink}>Politique de confidentialite</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('legal'); }} style={styles.footerLink}>Mentions legales</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('privacy'); }} style={styles.footerLink}>Droit de suppression</a>
               </div>
               <div style={styles.footerCol}>
                 <h4 style={styles.footerColTitle}>Contact</h4>
@@ -1798,4 +2082,75 @@ const styles = {
   footerCopy: { color: 'rgba(255,255,255,0.4)', fontSize: '13px' },
   footerCerts: { display: 'flex', gap: '20px', flexWrap: 'wrap' },
   footerCert: { color: 'rgba(255,255,255,0.4)', fontSize: '12px' },
+
+  // === LEGAL PAGES ===
+  legalPage: {
+    background: '#fff',
+    minHeight: '100vh',
+    paddingTop: '100px',
+    paddingBottom: '80px',
+  },
+  legalContainer: {
+    maxWidth: '800px',
+    margin: '0 auto',
+    padding: '0 24px',
+  },
+  legalBack: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    color: '#c9a962',
+    textDecoration: 'none',
+    fontSize: '14px',
+    fontWeight: '500',
+    marginBottom: '32px',
+    transition: 'opacity 0.2s',
+  },
+  legalTitle: {
+    fontFamily: "'Playfair Display', Georgia, serif",
+    fontSize: 'clamp(32px, 5vw, 48px)',
+    fontWeight: '600',
+    color: '#0c192f',
+    lineHeight: '1.2',
+    marginBottom: '40px',
+    paddingBottom: '24px',
+    borderBottom: '2px solid rgba(201,169,98,0.2)',
+  },
+  legalContent: {},
+  legalMeta: {
+    color: '#888',
+    fontSize: '14px',
+    fontStyle: 'italic',
+    marginBottom: '32px',
+    paddingBottom: '16px',
+    borderBottom: '1px solid #eee',
+  },
+  legalH2: {
+    fontFamily: "'Playfair Display', Georgia, serif",
+    fontSize: '22px',
+    fontWeight: '600',
+    color: '#0c192f',
+    marginTop: '36px',
+    marginBottom: '16px',
+  },
+  legalP: {
+    color: '#444',
+    fontSize: '15px',
+    lineHeight: '1.8',
+    marginBottom: '16px',
+  },
+  legalUl: {
+    paddingLeft: '24px',
+    marginBottom: '16px',
+  },
+  legalLi: {
+    color: '#444',
+    fontSize: '15px',
+    lineHeight: '1.8',
+    marginBottom: '8px',
+  },
+  legalLink: {
+    color: '#c9a962',
+    textDecoration: 'underline',
+  },
 };
