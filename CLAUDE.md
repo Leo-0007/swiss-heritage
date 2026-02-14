@@ -167,7 +167,7 @@ Voir `/docs/KALA_ONBOARDING.md` pour la checklist complete.
 
 ## 5. ETAT DU PROJET
 
-### Site Web (Claude Code) - v2.0 FAIT
+### Site Web (Claude Code) - v3.3 FAIT
 - [x] Design premium avec effets 3D
 - [x] Formulaire multi-etapes (2 steps)
 - [x] Checkbox consentement LPD (non pre-cochee)
@@ -175,7 +175,11 @@ Voir `/docs/KALA_ONBOARDING.md` pour la checklist complete.
 - [x] Footer conforme + SEO + Responsive
 - [x] Page politique de confidentialite
 - [x] Page mentions legales / CGU
-- [ ] Google Analytics 4
+- [x] Tracking GA4 (events prets, Measurement ID en attente)
+- [x] Strategie acquisition (5 personas, canaux valides)
+- [x] Landing pages personas (chomage, frontalier, retraite, changement-emploi)
+- [x] Routage hash URL (swiss-heritage.ch/#chomage, #frontalier, etc.)
+- [ ] Activation Google Analytics 4 (Measurement ID de Lionel requis)
 
 ### Workflows n8n (OpenClaw) - Mode A d'abord
 - [ ] **W1** : Reception lead + CRM + scoring leger + email avec lien Kala
@@ -334,6 +338,14 @@ privacy@swiss-heritage.ch.
 ---
 
 ## 11. CHANGELOG
+
+### 2026-02-14 - v3.4 (Claude Code) - LANDING PAGES PERSONAS + HASH ROUTING
+- 4 landing pages personas : chomage, frontalier, retraite, changement-emploi
+- Composant reutilisable LandingPageLayout (hero, stats, situations, FAQ, form)
+- Routage hash URL (swiss-heritage.ch/#chomage, #frontalier, #retraite, #changement-emploi)
+- Navigation bouton retour navigateur (hashchange listener)
+- Chips situation cliquables sur page d'accueil -> landing pages
+- Tracking GA4 : page_view sur navigation, situation_click
 
 ### 2026-02-14 - v3.3 (Claude Code) - STRATEGIE ACQUISITION + PAGES LEGALES
 - Strategie acquisition definie (5 personas, canaux valides/interdits)

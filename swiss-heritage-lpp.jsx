@@ -263,6 +263,39 @@ function SwissHeritageLPP() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Dynamic page title and meta description for SEO
+  useEffect(() => {
+    const pageMeta = {
+      home: {
+        title: 'Swiss Heritage - Retrouvez vos avoirs LPP oublies | Service gratuit',
+        desc: 'Plus de 10 milliards de francs dorment sur des comptes LPP non reclames en Suisse. Decouvrez gratuitement si vous avez des avoirs oublies.'
+      },
+      privacy: { title: 'Politique de confidentialite | Swiss Heritage', desc: '' },
+      legal: { title: 'Mentions legales | Swiss Heritage', desc: '' },
+      cgu: { title: 'Conditions generales | Swiss Heritage', desc: '' },
+      chomage: {
+        title: 'Chomage ? Verifiez vos avoirs LPP oublies | Swiss Heritage',
+        desc: 'Au chomage, vos avoirs LPP sont transferes sur un compte de libre passage. Verifiez gratuitement si des avoirs anterieurs ont ete oublies.'
+      },
+      frontalier: {
+        title: 'Frontalier ou expatrie ? Retrouvez vos avoirs LPP suisses | Swiss Heritage',
+        desc: 'Vous quittez la Suisse ? Vos avoirs de prevoyance LPP restent en Suisse. Retrouvez-les gratuitement avant votre depart.'
+      },
+      retraite: {
+        title: 'Retraite : retrouvez tous vos avoirs de prevoyance | Swiss Heritage',
+        desc: 'Avant la retraite, regroupez vos avoirs LPP eparpilles. Recherche gratuite aupres de plus de 1500 institutions.'
+      },
+      'changement-emploi': {
+        title: 'Nouveau job ? Vos anciens avoirs LPP vous attendent | Swiss Heritage',
+        desc: 'Un changement d\'emploi peut laisser des avoirs LPP oublies. Verifiez gratuitement si des cotisations anterieures vous attendent.'
+      },
+    };
+    const meta = pageMeta[currentPage] || pageMeta.home;
+    document.title = meta.title;
+    const descTag = document.querySelector('meta[name="description"]');
+    if (descTag && meta.desc) descTag.setAttribute('content', meta.desc);
+  }, [currentPage]);
+
   // ==============================
   // PAGES LEGALES
   // ==============================
