@@ -284,18 +284,45 @@ privacy@swiss-heritage.ch.
 
 ---
 
-## 8. PLANNING
+## 8. STRATEGIE ACQUISITION
 
-| Phase | Semaine | Claude Code | OpenClaw | Mode | Go/No-Go |
-|-------|---------|------------|----------|------|----------|
-| **1** | S1-S2 | Site (FAIT) | W1+W2 (Mode A) | A | Lead -> CRM -> lien Kala |
-| **2** | S3-S4 | Pages legales | W4 Mode A (admin MAJ) | A | Suivi manuel fonctionnel |
-| **API** | Quand specs | Adapter form si besoin | Bascule Mode B | B | End-to-end automatique |
-| **3** | Post-API | Optimisation | W3+W4 Mode B complet | B | Revenue mesurable |
+### Personas cibles
+| Persona | Profil | Canal principal | Urgence |
+|---------|--------|----------------|---------|
+| Nouveau chomeur | Inscrit RAV/ORP, "Open to work" | LinkedIn Ads, Google Ads | HAUTE |
+| Changement d'emploi | Transition entre employeurs | LinkedIn Ads, SEO | MOYENNE |
+| Frontalier / Expat | Quitte la Suisse | Facebook groupes, Google Ads | TRES HAUTE |
+| Futur retraite | 55-65 ans, carriere longue | Facebook Ads, Google Ads | HAUTE |
+| Independant | Se met a son compte | LinkedIn, forums | MOYENNE |
+
+### Canaux valides
+- LinkedIn Ads (ciblage par statut/transition) - P0
+- Google Ads (mots-cles LPP/libre passage) - P0
+- SEO / Blog (articles par persona) - P1
+- Facebook Ads (frontaliers, expats) - P1
+- Partenariats (ORP, fiduciaires, avocats) - P1
+- Content organique LinkedIn - P1
+
+### Canaux interdits
+- Scraping de profils (LinkedIn ou autre)
+- Cold email/SMS sans consentement
+- Achat de listes de contacts
 
 ---
 
-## 9. REGLES ABSOLUES
+## 9. PLANNING
+
+| Phase | Semaine | Claude Code | OpenClaw | Mode | Go/No-Go |
+|-------|---------|------------|----------|------|----------|
+| **1** | S1-S2 | Site (FAIT) + Pages legales (FAIT) | W1+W2 (Mode A) | A | Lead -> CRM -> lien Kala |
+| **2** | S3-S4 | Landing pages par persona | Calculateur LPP + templates email | A | Acquisition multi-canal |
+| **3** | S5-S6 | SEO + Blog | LinkedIn Ads setup + retargeting | A | Trafic cible |
+| **API** | Quand specs | Adapter form si besoin | Bascule Mode B | B | End-to-end automatique |
+| **4** | Post-API | Optimisation | W3+W4 Mode B complet | B | Revenue mesurable |
+
+---
+
+## 10. REGLES ABSOLUES
 
 1. **Kala = boite noire** : Ne JAMAIS reconstruire, scraper, ou contourner
 2. **Mode A d'abord** : Fonctionner maintenant sans API
@@ -306,7 +333,14 @@ privacy@swiss-heritage.ch.
 
 ---
 
-## 10. CHANGELOG
+## 11. CHANGELOG
+
+### 2026-02-14 - v3.3 (Claude Code) - STRATEGIE ACQUISITION + PAGES LEGALES
+- Strategie acquisition definie (5 personas, canaux valides/interdits)
+- Pages legales creees (politique confidentialite, mentions legales, CGU)
+- GA4 event tracking implemente (form, FAQ, CTA)
+- Planning ajuste avec phases acquisition multi-canal
+- Page strategie acquisition creee dans Notion
 
 ### 2026-02-14 - v3.2 (Claude Code) - MIGRATION NOTION CRM
 - Migration CRM de Google Sheets vers Notion Database
