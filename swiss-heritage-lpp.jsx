@@ -15,7 +15,11 @@ function SwissHeritageLPP() {
   const [formMessage, setFormMessage] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visibleSections, setVisibleSections] = useState({});
-  const [currentPage, setCurrentPage] = useState('home'); // home | privacy | legal | cgu
+  const [currentPage, setCurrentPage] = useState(() => {
+    const validPages = ['home', 'privacy', 'legal', 'cgu', 'chomage', 'frontalier', 'retraite', 'changement-emploi'];
+    const hash = window.location.hash.replace('#', '');
+    return validPages.includes(hash) ? hash : 'home';
+  });
   const sectionRefs = useRef({});
 
   // Scroll-based animations with IntersectionObserver
@@ -226,23 +230,38 @@ function SwissHeritageLPP() {
   ];
 
   const situations = [
-    { icon: '💼', label: "Changement d'emploi" },
-    { icon: '✈️', label: "Depart a l'etranger" },
-    { icon: '📋', label: "Chomage" },
+    { icon: '💼', label: "Changement d'emploi", page: 'changement-emploi' },
+    { icon: '✈️', label: "Depart a l'etranger / Frontalier", page: 'frontalier' },
+    { icon: '📋', label: "Chomage", page: 'chomage' },
     { icon: '💍', label: "Divorce" },
     { icon: '👶', label: "Conge maternite" },
     { icon: '🏠', label: "Achat immobilier" },
     { icon: '🎓', label: "Mise a son compte" },
     { icon: '🏖', label: "Conge sabbatique" },
-    { icon: '📊', label: "Planification retraite" },
+    { icon: '📊', label: "Planification retraite", page: 'retraite' },
     { icon: '🔍', label: "Simple curiosite" }
   ];
 
   // Navigation vers page legale
   const navigateTo = (page) => {
     setCurrentPage(page);
+    window.location.hash = page === 'home' ? '' : page;
     window.scrollTo(0, 0);
+    trackEvent('page_view', { page_name: page, url: window.location.href });
   };
+
+  // Hash-based routing for landing pages (LinkedIn/Google Ads links)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const validPages = ['home', 'privacy', 'legal', 'cgu', 'chomage', 'frontalier', 'retraite', 'changement-emploi'];
+      const hash = window.location.hash.replace('#', '');
+      const page = validPages.includes(hash) ? hash : 'home';
+      setCurrentPage(page);
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // ==============================
   // PAGES LEGALES
@@ -521,6 +540,436 @@ function SwissHeritageLPP() {
   );
 
   // ==============================
+  // LANDING PAGES PAR PERSONA
+  // ==============================
+
+  const LandingPageLayout = ({ hero, situations, stats: landingStats, faqItems, ctaText }) => (
+    <div style={styles.container}>
+      {/* NAV */}
+      <nav style={{
+        ...styles.nav,
+        background: 'rgba(12, 25, 47, 0.98)',
+        boxShadow: '0 4px 30px rgba(0,0,0,0.3)',
+        backdropFilter: 'blur(20px)',
+      }}>
+        <div style={styles.navContent}>
+          <div style={styles.logo} onClick={() => navigateTo('home')} role="button" tabIndex={0}>
+            <div style={styles.logoIconWrapper}>
+              <span style={styles.logoIcon}>&#9670;</span>
+            </div>
+            <span style={{...styles.logoText, cursor: 'pointer'}}>Swiss Heritage</span>
+          </div>
+          <div className="nav-links" style={styles.navLinks}>
+            <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('home'); }} style={styles.navLink}>Accueil</a>
+            <a href="#landing-form" style={styles.navCta}>Recherche gratuite</a>
+          </div>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section style={{
+        ...styles.hero,
+        minHeight: 'auto',
+        padding: '140px 24px 80px',
+      }}>
+        <div style={styles.heroOrb1}></div>
+        <div style={styles.heroOrb2}></div>
+        <div style={{...styles.heroInner, flexDirection: 'column', textAlign: 'center', alignItems: 'center'}}>
+          <div style={{...styles.heroContent, maxWidth: '800px', textAlign: 'center'}}>
+            <div style={styles.heroTag}>
+              <span style={styles.heroTagDot}></span>
+              {hero.tag}
+            </div>
+            <h1 style={{...styles.heroTitle, textAlign: 'center'}}>{hero.title}</h1>
+            <p style={{...styles.heroSubtitle, textAlign: 'center', maxWidth: '650px', margin: '0 auto 36px'}}>
+              {hero.subtitle}
+            </p>
+            <div style={{...styles.heroCtas, justifyContent: 'center'}}>
+              <a href="#landing-form" style={styles.primaryBtn} onClick={() => trackEvent('cta_click', { cta_type: 'landing_primary', persona: hero.persona })}>
+                {hero.cta}
+                <span style={styles.btnArrow}>&#8594;</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS */}
+      <section style={styles.stats}>
+        <div className="stats-grid" style={styles.statsContainer}>
+          {landingStats.map((stat, i) => (
+            <div key={i} style={styles.statItem}>
+              <div style={styles.statIcon}>{stat.icon}</div>
+              <div style={styles.statValue}>{stat.value}<span style={styles.statSuffix}>{stat.suffix}</span></div>
+              <div style={styles.statLabel}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SITUATIONS */}
+      <section style={{...styles.situationsSection, padding: '80px 24px'}}>
+        <div style={styles.sectionInner}>
+          <div style={styles.sectionTag}>Situations concernees</div>
+          <h2 style={styles.sectionTitle}>Pourquoi verifier <span style={styles.highlight}>maintenant</span> ?</h2>
+          <div style={styles.situationsGrid}>
+            {situations.map((s, i) => (
+              <div key={i} className="hover-3d" style={styles.situationChip}>
+                <span style={styles.situationIcon}>{s.icon}</span>
+                <span>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section style={styles.faq}>
+        <div style={styles.faqInner}>
+          <div style={styles.sectionTagDark}>Questions frequentes</div>
+          <h2 style={styles.faqTitleH2}>Ce que vous devez savoir</h2>
+          <div style={styles.faqList}>
+            {faqItems.map((faq, i) => (
+              <div key={i} style={{
+                ...styles.faqItem,
+                ...(openFaq === i + 100 ? styles.faqItemOpen : {}),
+              }}
+                onClick={() => setOpenFaq(openFaq === i + 100 ? null : i + 100)}
+              >
+                <div style={styles.faqQuestion}>
+                  <span>{faq.q}</span>
+                  <span style={{
+                    ...styles.faqToggle,
+                    transform: openFaq === i + 100 ? 'rotate(45deg)' : 'rotate(0deg)',
+                  }}>+</span>
+                </div>
+                <div style={{
+                  ...styles.faqAnswer,
+                  maxHeight: openFaq === i + 100 ? '500px' : '0',
+                  marginTop: openFaq === i + 100 ? '16px' : '0',
+                  opacity: openFaq === i + 100 ? 1 : 0,
+                }}>
+                  {faq.a}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA FORMULAIRE */}
+      <section id="landing-form" style={styles.cta}>
+        <div className="cta-grid" style={styles.ctaContent}>
+          <div style={styles.ctaLeft}>
+            <h2 style={styles.ctaTitle}>
+              {ctaText.title} <span style={styles.ctaTitleAccent}>{ctaText.accent}</span>
+            </h2>
+            <p style={styles.ctaSubtitle}>{ctaText.subtitle}</p>
+            <div style={styles.ctaFeatures}>
+              <div style={styles.ctaFeature}><span style={styles.ctaCheck}>&#10003;</span> Recherche 100% gratuite</div>
+              <div style={styles.ctaFeature}><span style={styles.ctaCheck}>&#10003;</span> Aucun engagement</div>
+              <div style={styles.ctaFeature}><span style={styles.ctaCheck}>&#10003;</span> Resultats sous 2-3 mois</div>
+              <div style={styles.ctaFeature}><span style={styles.ctaCheck}>&#10003;</span> Conforme LPD/nLPD</div>
+            </div>
+          </div>
+          <div style={styles.ctaRight}>
+            <div style={styles.formCard}>
+              <div style={styles.formProgress}>
+                <div style={{
+                  ...styles.formProgressStep,
+                  background: '#c9a962',
+                  color: '#0c192f',
+                }}>1</div>
+                <div style={{
+                  ...styles.formProgressLine,
+                  background: formStep >= 2 ? '#c9a962' : 'rgba(255,255,255,0.15)',
+                }}></div>
+                <div style={{
+                  ...styles.formProgressStep,
+                  background: formStep >= 2 ? '#c9a962' : 'rgba(255,255,255,0.15)',
+                  color: formStep >= 2 ? '#0c192f' : 'rgba(255,255,255,0.4)',
+                }}>2</div>
+              </div>
+              <div style={styles.formHeader}>
+                <h3 style={styles.formTitle}>{formStep === 1 ? 'Vos coordonnees' : 'Votre situation'}</h3>
+                <p style={styles.formSubtitle}>{formStep === 1 ? 'Etape 1/2 - Informations de base' : 'Etape 2/2 - Pour affiner la recherche'}</p>
+              </div>
+              <form style={styles.form} onSubmit={handleSubmit}>
+                {formMessage && (
+                  <div style={{
+                    ...styles.formMessage,
+                    ...(formStatus === 'success' ? styles.formMessageSuccess : styles.formMessageError),
+                  }}>{formMessage}</div>
+                )}
+                {formStep === 1 ? (
+                  <>
+                    <div style={styles.formRow}>
+                      <div style={styles.formGroup}>
+                        <label style={styles.formLabel}>Prenom *</label>
+                        <input style={styles.formInput} type="text" value={formData.prenom}
+                          onChange={(e) => setFormData({...formData, prenom: e.target.value})}
+                          placeholder="Jean" required />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label style={styles.formLabel}>Nom *</label>
+                        <input style={styles.formInput} type="text" value={formData.nom}
+                          onChange={(e) => setFormData({...formData, nom: e.target.value})}
+                          placeholder="Dupont" required />
+                      </div>
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>E-mail *</label>
+                      <input style={styles.formInput} type="email" value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        placeholder="jean.dupont@email.ch" required />
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>Telephone *</label>
+                      <input style={styles.formInput} type="tel" value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        placeholder="+41 79 123 45 67" required />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={styles.formRow}>
+                      <div style={styles.formGroup}>
+                        <label style={styles.formLabel}>Canton</label>
+                        <select style={styles.formInput} value={formData.canton}
+                          onChange={(e) => setFormData({...formData, canton: e.target.value})}>
+                          <option value="">Selectionnez</option>
+                          {cantons.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label style={styles.formLabel}>Statut</label>
+                        <select style={styles.formInput} value={formData.statutEmploi}
+                          onChange={(e) => setFormData({...formData, statutEmploi: e.target.value})}>
+                          <option value="">Selectionnez</option>
+                          <option value="employe">Employe</option>
+                          <option value="chomage">Au chomage</option>
+                          <option value="independant">Independant</option>
+                          <option value="retraite">Retraite</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>Nombre d'employeurs au cours de votre carriere</label>
+                      <select style={styles.formInput} value={formData.nbEmployeurs}
+                        onChange={(e) => setFormData({...formData, nbEmployeurs: e.target.value})}>
+                        <option value="">Selectionnez</option>
+                        <option value="1-2">1 a 2</option>
+                        <option value="3-5">3 a 5</option>
+                        <option value="6-10">6 a 10</option>
+                        <option value="10+">Plus de 10</option>
+                      </select>
+                    </div>
+                    <div style={styles.consentBox}>
+                      <label style={styles.consentLabel}>
+                        <input type="checkbox" style={styles.consentCheckbox}
+                          checked={formData.consentement}
+                          onChange={(e) => setFormData({...formData, consentement: e.target.checked})} />
+                        <span style={styles.consentText}>
+                          J'accepte que SwissEmpire2 Sarl me contacte par telephone, WhatsApp et/ou
+                          e-mail dans le cadre de ma demande de recherche d'avoirs LPP. Mes donnees
+                          seront traitees conformement a la{' '}
+                          <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigateTo('privacy'); }} style={{color: '#c9a962', textDecoration: 'underline'}}>politique de confidentialite</a>.
+                        </span>
+                      </label>
+                    </div>
+                  </>
+                )}
+                <div style={styles.formActions}>
+                  {formStep === 2 && (
+                    <button type="button" style={styles.formBackBtn} onClick={() => setFormStep(1)}>&#8592; Retour</button>
+                  )}
+                  <button type="submit" style={{...styles.formButton, opacity: formStatus === 'loading' ? 0.7 : 1, flex: 1}}
+                    disabled={formStatus === 'loading'}>
+                    {formStatus === 'loading' ? 'Envoi en cours...' : formStep === 1 ? 'Continuer &#8594;' : 'Lancer ma recherche gratuite &#8594;'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={styles.footer}>
+        <div style={styles.footerContent}>
+          <div style={styles.footerDisclaimer}>
+            Swiss Heritage est un service de SwissEmpire2 Sarl (CHE-489.583.893), Moutier.
+            Service de recherche administrative d'avoirs de prevoyance professionnelle (LPP).
+            Ce service ne constitue pas du conseil financier au sens de la LSFIN.
+          </div>
+          <div style={styles.footerBottom}>
+            <div style={styles.footerCopy}>
+              &copy; {new Date().getFullYear()} SwissEmpire2 Sarl. Tous droits reserves.
+            </div>
+            <div style={styles.footerCerts}>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('privacy'); }} style={styles.footerLink}>Confidentialite</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('legal'); }} style={styles.footerLink}>Mentions legales</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigateTo('cgu'); }} style={styles.footerLink}>CGU</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+
+  // LANDING : Chomage
+  if (currentPage === 'chomage') return (
+    <LandingPageLayout
+      hero={{
+        tag: 'Vous venez de perdre votre emploi ?',
+        title: <>Verifiez vos avoirs LPP <span style={styles.heroTitleAccent}>avant qu'il ne soit trop tard</span></>,
+        subtitle: "Le chomage est le moment ou vous risquez le plus de perdre la trace de vos avoirs de prevoyance. Chaque changement d'employeur a pu laisser des cotisations oubliees. Verifiez maintenant, c'est gratuit.",
+        cta: 'Verifier mes avoirs gratuitement',
+        persona: 'chomage',
+      }}
+      situations={[
+        { icon: '📋', label: 'Inscription au RAV/ORP' },
+        { icon: '💼', label: 'Fin de contrat' },
+        { icon: '🔄', label: 'Licenciement' },
+        { icon: '⏰', label: 'Fin de chomage' },
+        { icon: '📊', label: 'Plusieurs employeurs passes' },
+        { icon: '❓', label: "Pas de suivi LPP" },
+      ]}
+      stats={[
+        { value: '55', suffix: 'Mrd', label: 'CHF en avoirs de libre passage en Suisse', icon: '💰' },
+        { value: '1/5', suffix: '', label: 'Suisses ont des avoirs egares', icon: '🎯' },
+        { value: '3', suffix: '+', label: "Employeurs en moyenne = risque d'oubli", icon: '💼' },
+        { value: '0', suffix: 'CHF', label: 'Cout de la recherche', icon: '🆓' },
+      ]}
+      faqItems={[
+        { q: "Je viens de m'inscrire au chomage, que devient ma LPP ?", a: "Votre avoir LPP est transfere sur un compte de libre passage. Si vous avez eu plusieurs employeurs, il est possible que des avoirs anterieurs dorment sur des comptes oublies. C'est le moment ideal pour verifier." },
+        { q: "La recherche est-elle vraiment gratuite ?", a: "Oui, la recherche est 100% gratuite. Des frais de 3% s'appliquent uniquement en cas de rapatriement effectif d'avoirs retrouves." },
+        { q: "Combien de temps prend la recherche ?", a: "La recherche prend generalement 2 a 3 mois. Notre partenaire interroge la Centrale du 2eme pilier et plus de 1500 instituts de prevoyance." },
+        { q: "Mes indemnites chomage sont-elles affectees ?", a: "Non. La recherche d'avoirs LPP n'a aucun impact sur vos indemnites chomage. Ce sont des avoirs de prevoyance distincts." },
+      ]}
+      ctaText={{
+        title: 'Lancez votre recherche',
+        accent: 'gratuitement',
+        subtitle: "Ne laissez pas vos avoirs dormir. En 2 minutes, lancez une recherche gratuite et decouvrez si vous avez des avoirs LPP oublies.",
+      }}
+    />
+  );
+
+  // LANDING : Frontalier / Expat
+  if (currentPage === 'frontalier') return (
+    <LandingPageLayout
+      hero={{
+        tag: 'Vous quittez la Suisse ?',
+        title: <>Vos avoirs LPP suisses <span style={styles.heroTitleAccent}>vous attendent</span></>,
+        subtitle: "En quittant la Suisse, vos cotisations LPP restent dans le systeme suisse. Si vous ne les reclamez pas, elles risquent d'etre oubliees definitivement. Agissez avant votre depart.",
+        cta: 'Retrouver mes avoirs suisses',
+        persona: 'frontalier',
+      }}
+      situations={[
+        { icon: '✈️', label: 'Depart definitif de Suisse' },
+        { icon: '🌍', label: 'Expatriation' },
+        { icon: '🇫🇷', label: 'Retour en France' },
+        { icon: '🚗', label: 'Frontalier en fin de contrat' },
+        { icon: '🏠', label: "Demenagement a l'etranger" },
+        { icon: '🔄', label: 'Changement de pays' },
+      ]}
+      stats={[
+        { value: '55', suffix: 'Mrd', label: 'CHF en avoirs de libre passage', icon: '💰' },
+        { value: '350', suffix: "k+", label: 'Frontaliers travaillent en Suisse', icon: '🇨🇭' },
+        { value: '1500', suffix: '+', label: 'Instituts interroges', icon: '🏦' },
+        { value: '2-3', suffix: 'mois', label: 'Delai de recherche', icon: '📅' },
+      ]}
+      faqItems={[
+        { q: "Je quitte la Suisse, que devient ma LPP ?", a: "Vos avoirs LPP restent en Suisse sur un compte de libre passage. Selon votre destination (UE/AELE ou hors UE), vous pouvez recuperer tout ou partie de vos avoirs. Dans tous les cas, il faut d'abord les localiser." },
+        { q: "Je suis frontalier, ai-je cotise a la LPP ?", a: "Oui, tout employe en Suisse cotise a la LPP des que son salaire depasse le seuil d'entree (~22'050 CHF/an). Si vous avez eu plusieurs employeurs suisses, il est probable que des avoirs soient eparpilles." },
+        { q: "Puis-je recuperer mes avoirs depuis l'etranger ?", a: "Oui. La recherche se fait entierement en ligne. Une fois les avoirs localises, le rapatriement peut etre effectue a distance avec un accompagnement administratif." },
+        { q: "Y a-t-il un delai pour reclamer mes avoirs ?", a: "Il n'y a pas de delai de prescription pour les avoirs LPP. Mais plus vous attendez, plus il est difficile de retrouver la trace de vos cotisations. Agissez maintenant." },
+      ]}
+      ctaText={{
+        title: "N'oubliez pas vos avoirs",
+        accent: 'suisses',
+        subtitle: "Frontalier ou expatrie, vos cotisations LPP meritent d'etre retrouvees. Lancez une recherche gratuite en 2 minutes.",
+      }}
+    />
+  );
+
+  // LANDING : Retraite
+  if (currentPage === 'retraite') return (
+    <LandingPageLayout
+      hero={{
+        tag: 'Vous preparez votre retraite ?',
+        title: <>Retrouvez <span style={styles.heroTitleAccent}>tous</span> vos avoirs de prevoyance</>,
+        subtitle: "Apres une carriere de 30 ou 40 ans avec plusieurs employeurs, il est frequent d'avoir des avoirs LPP eparpilles. Avant la retraite, regroupez-les pour maximiser votre capital.",
+        cta: 'Verifier mes avoirs avant la retraite',
+        persona: 'retraite',
+      }}
+      situations={[
+        { icon: '📊', label: 'Planification retraite' },
+        { icon: '💼', label: 'Carriere longue (30+ ans)' },
+        { icon: '🔄', label: 'Multiples employeurs' },
+        { icon: '🏦', label: 'Comptes de libre passage oublies' },
+        { icon: '📈', label: 'Optimisation du capital' },
+        { icon: '⏰', label: 'Approche des 58-65 ans' },
+      ]}
+      stats={[
+        { value: '55', suffix: 'Mrd', label: 'CHF en avoirs de libre passage', icon: '💰' },
+        { value: '47', suffix: "k", label: 'CHF retrouves en moyenne', icon: '🎯' },
+        { value: '1/5', suffix: '', label: 'Suisses ont des avoirs oublies', icon: '📊' },
+        { value: '0', suffix: 'CHF', label: 'Cout de la recherche', icon: '🆓' },
+      ]}
+      faqItems={[
+        { q: "J'ai 60 ans, est-ce trop tard pour chercher mes avoirs ?", a: "Non, il n'est jamais trop tard. Au contraire, c'est le moment ideal pour faire le bilan complet de vos avoirs avant la retraite. Plus vous consolidez tot, meilleur sera votre rendement." },
+        { q: "Combien d'avoirs peut-on retrouver en moyenne ?", a: "Le montant varie selon votre parcours professionnel. Les personnes ayant eu 5+ employeurs retrouvent souvent entre 20'000 et 100'000 CHF d'avoirs oublies." },
+        { q: "Comment regrouper mes avoirs retrouves ?", a: "Une fois localises, vos avoirs peuvent etre transferes vers un compte de libre passage offrant un meilleur rendement, ou directement integres a votre caisse de pension active si elle l'accepte." },
+        { q: "Ma caisse de pension actuelle est-elle affectee ?", a: "Non. La recherche porte sur d'anciens avoirs de libre passage. Votre caisse de pension active n'est jamais touchee." },
+      ]}
+      ctaText={{
+        title: 'Preparez votre retraite',
+        accent: 'sereinement',
+        subtitle: "Retrouvez tous vos avoirs de prevoyance avant la retraite. Recherche gratuite, resultats sous 2-3 mois.",
+      }}
+    />
+  );
+
+  // LANDING : Changement d'emploi
+  if (currentPage === 'changement-emploi') return (
+    <LandingPageLayout
+      hero={{
+        tag: 'Nouveau job ?',
+        title: <>Vos anciens avoirs LPP <span style={styles.heroTitleAccent}>meritent votre attention</span></>,
+        subtitle: "A chaque changement d'employeur, vos cotisations LPP sont transferees. Mais parfois, une partie reste sur un compte de libre passage oublie. Verifiez en 2 minutes.",
+        cta: "Verifier mes anciens avoirs",
+        persona: 'changement-emploi',
+      }}
+      situations={[
+        { icon: '🔄', label: "Changement d'employeur" },
+        { icon: '📋', label: 'Periode entre deux emplois' },
+        { icon: '🏢', label: 'Restructuration / fusion' },
+        { icon: '💼', label: '3+ employeurs dans la carriere' },
+        { icon: '📊', label: 'Pas de suivi LPP' },
+        { icon: '🎓', label: 'Reprise detudes' },
+      ]}
+      stats={[
+        { value: '55', suffix: 'Mrd', label: 'CHF en avoirs de libre passage', icon: '💰' },
+        { value: '1.35', suffix: 'Mio', label: 'Comptes de libre passage en Suisse', icon: '📊' },
+        { value: '3', suffix: '+', label: "Employeurs = risque d'oubli eleve", icon: '💼' },
+        { value: '0', suffix: 'CHF', label: 'Cout de la recherche', icon: '🆓' },
+      ]}
+      faqItems={[
+        { q: "J'ai change d'emploi, ma LPP a-t-elle suivi ?", a: "Normalement oui, mais il arrive que le transfert ne se fasse pas correctement, surtout s'il y a eu une periode de chomage ou de freelance entre deux emplois. C'est dans ces periodes de transition que les avoirs se perdent." },
+        { q: "J'ai eu 5 employeurs, combien d'avoirs puis-je retrouver ?", a: "Plus vous avez eu d'employeurs, plus le risque d'avoir des avoirs eparpilles est eleve. En moyenne, les personnes avec 5+ employeurs retrouvent entre 20'000 et 50'000 CHF." },
+        { q: "Comment savoir si j'ai des avoirs oublies ?", a: "C'est exactement ce que notre service propose. En remplissant le formulaire, vous lancez une recherche gratuite aupres de la Centrale du 2eme pilier et de plus de 1500 instituts de prevoyance." },
+        { q: "Que se passe-t-il si rien n'est retrouve ?", a: "Vous ne payez rien. La recherche est gratuite quel que soit le resultat." },
+      ]}
+      ctaText={{
+        title: 'Nouveau depart,',
+        accent: 'nouveaux avoirs ?',
+        subtitle: "Profitez de votre changement d'emploi pour verifier si vous avez des avoirs LPP oublies. C'est gratuit et sans engagement.",
+      }}
+    />
+  );
+
+  // ==============================
   // RENDER (page principale)
   // ==============================
   return (
@@ -708,13 +1157,16 @@ function SwissHeritageLPP() {
           </p>
           <div style={styles.situationsGrid}>
             {situations.map((sit, i) => (
-              <div key={i} className="hover-3d" style={{
+              <div key={i} className="hover-3d" onClick={sit.page ? () => { trackEvent('situation_click', { situation: sit.label, persona: sit.page }); navigateTo(sit.page); } : undefined} style={{
                 ...styles.situationChip,
+                cursor: sit.page ? 'pointer' : 'default',
                 animation: visibleSections['sec-situations'] ? `fadeInUp 0.5s ease-out ${i * 0.08}s forwards` : 'none',
                 opacity: visibleSections['sec-situations'] ? undefined : 0,
+                position: 'relative',
               }}>
                 <span style={styles.situationIcon}>{sit.icon}</span>
                 <span style={styles.situationLabel}>{sit.label}</span>
+                {sit.page && <span style={{ fontSize: '0.7rem', color: '#c9a962', marginLeft: 6 }}>→ En savoir plus</span>}
               </div>
             ))}
           </div>
