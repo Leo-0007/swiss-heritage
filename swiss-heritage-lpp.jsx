@@ -727,7 +727,7 @@ function SwissHeritageLPP() {
                 <h3 style={styles.formTitle}>{formStep === 1 ? 'Vos coordonnees' : 'Votre situation'}</h3>
                 <p style={styles.formSubtitle}>{formStep === 1 ? 'Etape 1/2 - Informations de base' : 'Etape 2/2 - Pour affiner la recherche'}</p>
               </div>
-              <form style={styles.form} onSubmit={handleSubmit}>
+              <form style={styles.form} onSubmit={handleSubmit} aria-label="Formulaire de recherche d'avoirs LPP">
                 {formMessage && (
                   <div style={{
                     ...styles.formMessage,
@@ -1008,7 +1008,7 @@ function SwissHeritageLPP() {
   return (
     <div style={styles.container}>
       {/* ========== NAVIGATION ========== */}
-      <nav style={{
+      <nav aria-label="Navigation principale" role="navigation" style={{
         ...styles.nav,
         background: isScrolled ? 'rgba(12, 25, 47, 0.98)' : 'transparent',
         boxShadow: isScrolled ? '0 4px 30px rgba(0,0,0,0.3)' : 'none',
@@ -1027,11 +1027,64 @@ function SwissHeritageLPP() {
             <a href="#testimonials" style={styles.navLink}>Temoignages</a>
             <a href="#faq" style={styles.navLink}>FAQ</a>
           </div>
-          <a href="#contact" style={styles.navCta}>
-            Recherche Gratuite
-            <span style={{ marginLeft: '8px', fontSize: '14px' }}>→</span>
-          </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <a href="#contact" style={styles.navCta} className="nav-cta-btn">
+              Recherche Gratuite
+              <span style={{ marginLeft: '8px', fontSize: '14px' }}>→</span>
+            </a>
+            {/* Hamburger menu button (mobile only) */}
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={mobileMenuOpen}
+              style={{
+                display: 'none',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                zIndex: 1001,
+              }}
+            >
+              <div style={{
+                width: '24px', height: '2px', background: '#c9a962',
+                transition: 'all 0.3s ease',
+                transform: mobileMenuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none',
+              }}></div>
+              <div style={{
+                width: '24px', height: '2px', background: '#c9a962', marginTop: '6px',
+                transition: 'all 0.3s ease',
+                opacity: mobileMenuOpen ? 0 : 1,
+              }}></div>
+              <div style={{
+                width: '24px', height: '2px', background: '#c9a962', marginTop: '6px',
+                transition: 'all 0.3s ease',
+                transform: mobileMenuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none',
+              }}></div>
+            </button>
+          </div>
         </div>
+        {/* Mobile menu overlay */}
+        {mobileMenuOpen && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(12, 25, 47, 0.98)',
+            backdropFilter: 'blur(20px)',
+            display: 'flex', flexDirection: 'column',
+            justifyContent: 'center', alignItems: 'center', gap: '32px',
+            zIndex: 999,
+            animation: 'fadeInUp 0.3s ease-out',
+          }}>
+            <a href="#process" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>Processus</a>
+            <a href="#advantages" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>Avantages</a>
+            <a href="#testimonials" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>Temoignages</a>
+            <a href="#faq" style={styles.mobileMenuLink} onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            <a href="#contact" style={{...styles.navCta, fontSize: '18px', padding: '16px 32px'}} onClick={() => setMobileMenuOpen(false)}>
+              Recherche Gratuite →
+            </a>
+          </div>
+        )}
       </nav>
 
       {/* ========== HERO WITH 3D ELEMENTS ========== */}
@@ -1436,7 +1489,7 @@ function SwissHeritageLPP() {
                   {formStep === 1 ? 'Etape 1/2 — Informations de contact' : 'Etape 2/2 — Pour optimiser votre recherche'}
                 </p>
               </div>
-              <form style={styles.form} onSubmit={handleSubmit}>
+              <form style={styles.form} onSubmit={handleSubmit} aria-label="Formulaire de recherche d'avoirs LPP">
                 {formStep === 1 ? (
                   <>
                     <div style={styles.formRow}>
@@ -1709,6 +1762,17 @@ const styles = {
     boxShadow: '0 4px 15px rgba(201,169,98,0.3)',
     display: 'inline-flex',
     alignItems: 'center',
+  },
+
+  mobileMenuLink: {
+    color: '#fff',
+    textDecoration: 'none',
+    fontSize: '24px',
+    fontWeight: '500',
+    fontFamily: "'Playfair Display', serif",
+    transition: 'color 0.2s',
+    padding: '8px 0',
+    borderBottom: '1px solid rgba(201, 169, 98, 0.2)',
   },
 
   // === HERO ===

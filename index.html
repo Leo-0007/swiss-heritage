@@ -213,6 +213,8 @@
       .two-col { grid-template-columns: 1fr !important; }
       .four-col { grid-template-columns: repeat(2, 1fr) !important; }
       .nav-links { display: none !important; }
+      .nav-cta-btn { display: none !important; }
+      .mobile-menu-btn { display: block !important; }
       .cta-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
       .footer-grid { grid-template-columns: 1fr !important; }
       .footer-links { grid-template-columns: repeat(2, 1fr) !important; }
@@ -251,6 +253,8 @@
   -->
 </head>
 <body>
+  <!-- Skip to content (accessibility) -->
+  <a href="#contact" style="position:absolute;top:-40px;left:0;background:#c9a962;color:#0c192f;padding:8px 16px;z-index:10000;font-weight:600;transition:top 0.3s" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Aller au formulaire</a>
   <div id="root"></div>
 
   <script type="text/babel" src="swiss-heritage-lpp.jsx"></script>
