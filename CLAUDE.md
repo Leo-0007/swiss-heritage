@@ -1,7 +1,7 @@
 # CLAUDE.md - Feuille de Route Swiss Heritage
 
 > **Document vivant** - Mis a jour par Claude Code (chef d'orchestre)
-> Derniere MAJ : 2026-02-14 v3.1 (Mode A/B Kala + KalaAdapter)
+> Derniere MAJ : 2026-02-14 v3.2 (Migration CRM Notion)
 
 ---
 
@@ -14,7 +14,7 @@
 | **Projet** | Swiss Heritage (swiss-heritage.ch) |
 | **Partenaire tech** | Kala (kala.ch) - moteur de recherche officiel LPP |
 | **Objectif revenue** | 10'000 CHF/mois |
-| **Stack** | React 18 (CDN), Netlify, n8n, Google Sheets |
+| **Stack** | React 18 (CDN), Netlify, n8n, Notion (CRM) |
 
 ---
 
@@ -88,7 +88,7 @@ L'API Kala n'est pas publique. Swiss Heritage redirige le client vers une URL Ka
 
 **Ce qui fonctionne en Mode A :**
 - Acquisition (site + formulaire)
-- CRM leger (Google Sheets)
+- CRM leger (Notion Database)
 - Email confirmation + lien Kala
 - Email notification admin
 - Scoring leger (nb_employeurs + statut)
@@ -225,9 +225,11 @@ statut "independant" -> score += 10
 Score enregistre dans CRM, utilise pour prioriser le suivi
 ```
 
-### CRM leger (Google Sheets) - 12 colonnes
+### CRM Notion Database - 12 colonnes
 ```
-lead_id | timestamp | prenom | nom | email | phone | canton | nb_employeurs | statut_emploi | score | statut | kala_reference
+Database ID : 34c11f86-5f90-491f-8049-693f64a03bc1
+Data Source : collection://1747d023-cde2-4825-9b49-9f5eb826e711
+Colonnes : Lead (title) | Timestamp (date) | Prenom | Nom | Email | Phone | Canton (select) | Nb Employeurs (select) | Statut Emploi (select) | Score (number) | Statut (select) | Kala Reference
 ```
 
 ### Statuts du lead
@@ -305,6 +307,13 @@ privacy@swiss-heritage.ch.
 ---
 
 ## 10. CHANGELOG
+
+### 2026-02-14 - v3.2 (Claude Code) - MIGRATION NOTION CRM
+- Migration CRM de Google Sheets vers Notion Database
+- Base Notion creee avec 12 colonnes typees (select, email, phone, etc.)
+- Page orchestration Notion mise a jour (v3.1)
+- Directive OpenClaw Sprint 1 creee dans Notion
+- Communication directe Claude Code <-> OpenClaw via Notion
 
 ### 2026-02-14 - v3.1 (Claude Code) - MODE A/B + KALA ADAPTER
 - Ajout Mode A (fallback redirection URL) et Mode B (API)
