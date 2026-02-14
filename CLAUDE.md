@@ -1,7 +1,7 @@
 # CLAUDE.md - Feuille de Route Swiss Heritage
 
 > **Document vivant** - Mis a jour par Claude Code (chef d'orchestre)
-> Derniere MAJ : 2026-02-14
+> Derniere MAJ : 2026-02-14 v3.0 (clarification role Kala)
 
 ---
 
@@ -12,99 +12,158 @@
 | **Entreprise** | SwissEmpire2 Sarl (CHE-489.583.893) |
 | **Siege** | Moutier, Suisse |
 | **Projet** | Swiss Heritage (swiss-heritage.ch) |
-| **Service** | Recherche administrative d'avoirs LPP (2eme pilier) oublies |
 | **Partenaire tech** | Kala (kala.ch) - moteur de recherche officiel LPP |
 | **Objectif revenue** | 10'000 CHF/mois |
 | **Stack** | React 18 (CDN), Netlify, n8n, Google Sheets |
 
 ---
 
-## 1. EQUIPE IA & ROLES
+## 1. ROLE EXACT DE SWISS HERITAGE (NON NEGOCIABLE)
+
+### Ce que Swiss Heritage FAIT
+
+```
+┌──────────────────────────────────────────────────────────┐
+│          SWISS HERITAGE = 3 MISSIONS                      │
+│                                                           │
+│  1. ACQUISITION                                           │
+│     Site web, formulaire, SEO, ads, partenaires           │
+│     -> Capter des leads qualifies                         │
+│                                                           │
+│  2. TRANSMISSION A KALA                                   │
+│     Envoyer les donnees du lead via API Kala              │
+│     -> Swiss Heritage n'effectue PAS la recherche         │
+│                                                           │
+│  3. AUTOMATION POST-RESULTAT                              │
+│     Recevoir le resultat Kala via webhook                 │
+│     Contacter le client (email, WhatsApp)                 │
+│     Maximiser le taux de rapatriement                     │
+│     -> C'est la ou Swiss Heritage cree de la valeur       │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Ce que Kala GERE (Swiss Heritage ne touche JAMAIS)
+
+```
+┌──────────────────────────────────────────────────────────┐
+│              KALA = BOITE NOIRE                           │
+│                                                           │
+│  - Recherche LPP complete (Centrale 2e pilier)           │
+│  - Verification d'identite                                │
+│  - CRM principal / gestion dossier                        │
+│  - Processus legal et mandat                              │
+│  - Envoi a la Centrale du 2eme pilier                    │
+│  - Rapatriement des avoirs                                │
+│  - Dashboard client Kala                                  │
+│  - Conformite reglementaire de la recherche              │
+└──────────────────────────────────────────────────────────┘
+```
+
+### REGLE D'OR
+> **Swiss Heritage ne reconstruit JAMAIS ce que Kala fait deja.**
+> Pas de verification d'identite. Pas de collecte de documents.
+> Pas de gestion de mandat. Pas de rapatriement.
+> Swiss Heritage = acquisition + transmission + post-resultat.
+
+---
+
+## 2. ARCHITECTURE SIMPLIFIEE (3 couches)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  COUCHE 3 - POST-RESULTAT (Valeur ajoutee)              │
+│  Recevoir webhook Kala -> contacter client ->            │
+│  sequences email/WhatsApp -> maximiser rapatriement      │
+│  [Responsable: OpenClaw]                                 │
+├─────────────────────────────────────────────────────────┤
+│  COUCHE 2 - TRANSMISSION (API Kala)                      │
+│  Recevoir lead -> valider -> envoyer a API Kala ->       │
+│  stocker reference dans CRM leger                        │
+│  [Responsable: OpenClaw]                                 │
+├─────────────────────────────────────────────────────────┤
+│  COUCHE 1 - ACQUISITION (Capture)                        │
+│  Site web, formulaire, SEO, ads, partenaires             │
+│  [Responsable: Claude Code (site) + OpenClaw (canaux)]   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Flow complet
+
+```
+[Client]  ->  [Site swiss-heritage.ch]  ->  [Webhook n8n W1]
+                                                │
+                                     ┌──────────▼──────────┐
+                                     │  W1: Reception lead  │
+                                     │  + Validation        │
+                                     │  + CRM leger         │
+                                     │  + Envoi API Kala    │
+                                     └──────────┬──────────┘
+                                                │
+                                     ┌──────────▼──────────┐
+                                     │  W2: Confirmation    │
+                                     │  Email/WhatsApp      │
+                                     │  au client           │
+                                     └─────────────────────┘
+
+               ... Kala fait la recherche (2-3 mois) ...
+
+                                     ┌─────────────────────┐
+                                     │  W3: Webhook retour  │
+                                     │  resultat Kala       │
+                                     └──────────┬──────────┘
+                                                │
+                                     ┌──────────▼──────────┐
+                                     │  W4: Automation      │
+                                     │  post-resultat       │
+                                     │  - Si found: push    │
+                                     │    rapatriement      │
+                                     │  - Si not found:     │
+                                     │    email empathique  │
+                                     └─────────────────────┘
+```
+
+---
+
+## 3. EQUIPE IA & ROLES
 
 ### Claude Code - Chef d'Orchestre (LEAD)
-- **Responsabilites** : Architecture globale, frontend, design, SEO, conformite legale, coordination
-- **Acces** : Code source, fichiers projet, Notion, navigateur Chrome
-- **Autorite** : Decisions techniques, validation des PRs, approbation des specs
+- **Responsabilites** : Site web, design, SEO, conformite legale, coordination
+- **Autorite** : Decisions techniques, validation des PRs
 
 ### OpenClaw - Specialiste Automatisation (EXECUTANT)
-- **Responsabilites** : Workflows n8n, agents IA, integrations API, CRM, emails
-- **Acces** : n8n (n8n.swiss-leads.ch), webhooks, APIs externes
+- **Responsabilites** : 4 workflows n8n, CRM leger, integration API Kala
 - **Rapport** : Rend compte a Claude Code via GitHub Issues/PRs
 
 ### Humain - Product Owner
-- **Role** : Decisions business, validation finale, relais de communication
+- **Role** : Decisions business, validation finale
 - **Contact** : lionel.ndombele@gmail.com
 
 ---
 
-## 2. ARCHITECTURE TECHNIQUE
+## 4. ETAT DU PROJET
 
-```
-COUCHE 5 - INTELLIGENCE (Auto-amelioration)
-   Scoring adaptatif, A/B testing, rapports IA
-   [Responsable: Claude Code + OpenClaw]
-
-COUCHE 4 - ORCHESTRATION (Auto-correction)
-   Monitoring, retry, alertes, dead letter queue
-   [Responsable: OpenClaw]
-
-COUCHE 3 - KALA BRIDGE (Interface partenaire)
-   Connecteur Kala, orchestrateur, mode degrade
-   [Responsable: OpenClaw]
-
-COUCHE 2 - AGENTS IA SPECIALISES (6 agents)
-   Qualifier, Conversationnel, Documentaliste, Signature, Relance, Post-Kala
-   [Responsable: OpenClaw]
-
-COUCHE 1 - CAPTURE (Multi-canal)
-   Site web, formulaires, WhatsApp, telephone
-   [Responsable: Claude Code (site) + OpenClaw (canaux)]
-```
-
----
-
-## 3. ETAT DU PROJET
-
-### Site Web (Claude Code) - v2.0
-- [x] Design premium avec effets 3D (orbes, tilt, animations)
-- [x] Formulaire multi-etapes (2 steps) inspire de Kala
-- [x] Champs : prenom, nom, email, phone, dateNaissance, canton, statutEmploi, nbEmployeurs
+### Site Web (Claude Code) - v2.0 FAIT
+- [x] Design premium avec effets 3D
+- [x] Formulaire multi-etapes (2 steps)
 - [x] Checkbox consentement LPD (non pre-cochee)
-- [x] Stats mises a jour : 55 Mrd CHF, 1.35 Mio comptes, 1500+ instituts, 1/5 Suisses
-- [x] Section situations (10 cas d'usage Kala)
-- [x] Comparaison institution suppletive vs Swiss Heritage
-- [x] FAQ enrichie (6 questions, frais 3%, rapatriement anticipe)
+- [x] Stats : 55 Mrd CHF, 1.35 Mio comptes, 1500+ instituts, 1/5 Suisses
 - [x] Footer conforme : SwissEmpire2 Sarl + LSFIN disclaimer
-- [x] SEO meta tags + Open Graph
-- [x] Responsive (968px, 480px)
+- [x] SEO meta tags + Open Graph + Responsive
 - [ ] Page politique de confidentialite
 - [ ] Page mentions legales / CGU
-- [ ] Google Analytics configuration
-- [ ] A/B testing formulaire
+- [ ] Google Analytics 4 configuration
 
-### Workflows n8n (OpenClaw) - Phase 1
-- [ ] **O1** : Webhook reception formulaire (POST JSON enrichi)
-- [ ] **O2** : CRM Google Sheets structure (15 colonnes)
-- [ ] **O3** : Agent Qualifier (matrice scoring)
-- [ ] **O4** : Email confirmation client (template HTML)
-- [ ] **O5** : Email notification admin
-- [ ] **O6** : Anti-doublons (email + phone)
-
-### Workflows n8n (OpenClaw) - Phase 2
-- [ ] **O7** : Agent WhatsApp (sequences M1/M2/M3 + relances)
-- [ ] **O8** : Agent Documentaliste (upload securise + relances)
-- [ ] **O9** : Agent Signature (Skribble e-signature)
-- [ ] **O10** : Kala Bridge mode degrade (human-in-the-loop)
-- [ ] **O11** : Agent Relance/Nurturing
-- [ ] **O12** : Agent Post-Kala (resultats + closing)
-- [ ] **O13** : Dashboard CEO
-- [ ] **O14** : Monitoring + alertes
+### Workflows n8n (OpenClaw) - 4 workflows
+- [ ] **W1** : Reception lead + validation + CRM + envoi API Kala
+- [ ] **W2** : Email/WhatsApp confirmation client
+- [ ] **W3** : Webhook retour resultat Kala
+- [ ] **W4** : Sequence automation post-resultat (found / not found)
 
 ---
 
-## 4. SPECS TECHNIQUES PARTAGEES
+## 5. SPECS TECHNIQUES
 
-### Payload formulaire -> webhook n8n
+### Payload formulaire -> webhook n8n (W1)
 ```json
 {
   "prenom": "Jean",
@@ -118,52 +177,35 @@ COUCHE 1 - CAPTURE (Multi-canal)
   "statut_emploi": "employe",
   "nb_employeurs": "3-5",
   "consentement_contact": true,
-  "consentement_timestamp": "2026-02-13T14:30:00.000Z",
-  "timestamp": "2026-02-13T14:30:00.000Z",
+  "consentement_timestamp": "2026-02-14T14:30:00.000Z",
+  "timestamp": "2026-02-14T14:30:00.000Z",
   "source": "swiss-heritage-website",
   "langue": "fr"
 }
 ```
 
-### Webhook URL
-- **Test** : `https://n8n.swiss-leads.ch/webhook-test/lpp-form`
-- **Production** : `https://n8n.swiss-leads.ch/webhook/lpp-form` (a activer par OpenClaw)
+### Webhooks
+- **Reception formulaire (W1)** : `https://n8n.swiss-leads.ch/webhook/lpp-form`
+- **Retour resultat Kala (W3)** : `https://n8n.swiss-leads.ch/webhook/kala-result`
 
-### Matrice de Scoring (Agent Qualifier)
-| Critere | Poids | Score max | Logique |
-|---------|-------|-----------|---------|
-| nb_employeurs >= 3 | 25% | 25 | Plus d'employeurs = plus de chances |
-| statut = chomage/retraite | 20% | 20 | Transitions = risque perte |
-| Periodes lacunes | 15% | 15 | Lacunes = forte probabilite |
-| Intention pret a agir | 15% | 15 | Conversion rapide |
-| Urgence high/critical | 10% | 10 | Priorite traitement |
-| Source referral/partner | 10% | 10 | Meilleur taux conversion |
-| Documents en main | 5% | 5 | Accelere dossier |
-
-### Routing par score
-| Score | Categorie | Action | Delai |
-|-------|-----------|--------|-------|
-| >= 70 | HOT | Agent Appel | 15 min |
-| 40-69 | WARM | Agent WhatsApp | 1h |
-| 20-39 | COLD | Sequence email | 24h |
-| < 20 | DISQUALIFIED | Archive + email | - |
-
-### CRM Google Sheets - Colonnes
+### CRM leger (Google Sheets) - 10 colonnes
 ```
-lead_id | timestamp | prenom | nom | email | phone | date_naissance | canton | nationalite | statut_emploi | nb_employeurs | score | statut | source | consentement_timestamp
+lead_id | timestamp | prenom | nom | email | phone | canton | nb_employeurs | statut | kala_reference
 ```
 
-### Statuts du lead (machine d'etat)
+### Statuts du lead (6 seulement)
 ```
-new -> contacted -> qualified -> docs_requested -> docs_partial -> docs_complete
--> contract_sent -> mandate_signed -> kala_ready -> submitted_to_kala
--> kala_processing -> kala_result_found / kala_result_not_found / kala_error
--> client_notified -> rapatriation_started -> payout_confirmed -> won
+new            -> Lead recu du formulaire
+sent_to_kala   -> Transmis a l'API Kala
+confirmed      -> Confirmation envoyee au client
+result_found   -> Kala a trouve des avoirs
+result_empty   -> Kala n'a rien trouve
+contacted      -> Client contacte post-resultat
 ```
 
 ---
 
-## 5. DONNEES KALA (Business)
+## 6. DONNEES KALA (Business)
 
 | Info | Valeur |
 |------|--------|
@@ -172,31 +214,23 @@ new -> contacted -> qualified -> docs_requested -> docs_partial -> docs_complete
 | Instituts interroges | ~1'500 |
 | Suisses concernes | 1 sur 5 |
 | Frais rapatriement | 3% du capital (deduit directement) |
-| Delai recherche Centrale 2e pilier | ~2 mois |
-| Delai recherche Institution suppletive | ~1 mois |
-| Rapatriement anticipe | Possible |
-| Partenaires financiers | Lemania (Mirabaud), Zugerberg Finanz |
-| Seuil Lemania | min CHF 1'300 |
-| Seuil Zugerberg | Aucun minimum, recommande < CHF 50'000 |
+| Delai recherche | 2 a 3 mois |
 
 ---
 
-## 6. CONFORMITE (NON NEGOCIABLE)
+## 7. CONFORMITE (NON NEGOCIABLE)
 
 ### LPD/nLPD
-- Consentement EXPLICITE avant tout contact (checkbox non pre-cochee)
-- Finalite declaree : recherche d'avoirs LPP et accompagnement administratif
-- Conservation : leads non convertis 12 mois, clients mandat + 10 ans
-- Droit acces/rectification/suppression : privacy@swiss-heritage.ch
-- Partage Kala : couvert par mandat signe
+- Consentement EXPLICITE (checkbox non pre-cochee)
+- Finalite : recherche d'avoirs LPP via partenaire technologique
+- Conservation : leads non convertis 12 mois
+- Contact : privacy@swiss-heritage.ch
 
 ### LSFIN
-- Swiss Heritage = service ADMINISTRATIF, PAS conseil financier
+- Swiss Heritage = service d'ACQUISITION, PAS conseil financier
 - Wording : "information" JAMAIS "conseil"
-- Si conseil financier necessaire -> redirection FINMA autorise
-- Kala = recherche, Swiss Heritage = acquisition + accompagnement admin
 
-### Texte consentement (formulaire)
+### Texte consentement
 ```
 J'accepte que SwissEmpire2 Sarl me contacte par telephone, WhatsApp et/ou
 e-mail dans le cadre de ma demande de recherche d'avoirs LPP. Mes donnees
@@ -206,80 +240,39 @@ demarche. Je peux retirer mon consentement a tout moment en ecrivant a
 privacy@swiss-heritage.ch.
 ```
 
-### Mention legale footer
-```
-Swiss Heritage est un service de SwissEmpire2 Sarl (CHE-489.583.893), Moutier.
-Service de recherche administrative d'avoirs de prevoyance professionnelle (LPP).
-Ce service ne constitue pas du conseil financier au sens de la LSFIN.
-Pour tout conseil en placement, consultez un conseiller financier autorise FINMA.
-```
-
 ---
 
-## 7. PLANNING DE DEPLOIEMENT
+## 8. PLANNING
 
 | Phase | Semaine | Claude Code | OpenClaw | Go/No-Go |
 |-------|---------|------------|----------|----------|
-| **1** | S1-S2 | Site V2 (FAIT) | O1 + O2 + O4 + O5 | Leads entrent et sont stockes |
-| **2** | S3-S4 | Pages legales | O3 + O6 + O7 | Scoring auto + 1er contact < 1h |
-| **3** | S5-S6 | Optimisations site | O8 + O9 | Dossiers Kala-ready produits |
-| **4** | S7-S8 | - | O10 + O12 | Soumission Kala fonctionnelle |
-| **5** | S9-S10 | A/B tests | O11 + O13 + O14 | KPIs visibles temps reel |
-| **API** | Quand dispo | Adapter form si besoin | Brancher API Kala | End-to-end automatique |
-
----
-
-## 8. PROTOCOLE DE COLLABORATION GITHUB
-
-### Branches
-- `main` : Production (deploye sur Netlify)
-- `dev` : Developpement / integration
-- `feature/*` : Nouvelles fonctionnalites
-- `openclaw/*` : Branches d'OpenClaw (workflows, configs)
-
-### Issues
-- Label `claude-code` : Taches pour moi
-- Label `openclaw` : Taches pour OpenClaw
-- Label `P0` `P1` `P2` `P3` : Priorites
-- Label `blocked` : En attente d'une dependance
-- Label `review` : Necessite validation de Claude Code
-
-### Pull Requests
-- OpenClaw cree des PRs vers `dev`
-- Claude Code review et merge
-- Merge `dev` -> `main` uniquement apres validation
-
-### Communication
-```
-Claude Code ecrit les specs/issues sur GitHub
-   -> Humain transmet a OpenClaw
-   -> OpenClaw execute et cree PR/commit
-   -> Humain rapporte le retour
-   -> Claude Code review et coordonne
-```
+| **1** | S1-S2 | Site V2 (FAIT) | W1 + W2 | Lead -> Kala + client confirme |
+| **2** | S3-S4 | Pages legales + GA4 | W3 + W4 | Resultat Kala -> client contacte |
+| **3** | S5+ | Optimisation conversion | Amelioration sequences | Revenue mesurable |
 
 ---
 
 ## 9. REGLES ABSOLUES
 
-1. **Kala = boite noire** : Ne JAMAIS reconstruire le process de recherche Kala
-2. **Compliance by design** : LPD/LSFIN integre dans chaque composant
-3. **Revenue-first** : Chaque decision justifiee par impact revenue
-4. **Mode degrade toujours pret** : Fonctionne sans API Kala (human-in-the-loop)
-5. **Propriete relation client** : Swiss Heritage possede la relation, Kala = prestataire
-6. **Autonomie maximale** : Humain intervient uniquement pour decisions strategiques
-7. **Iteration rapide** : MVP fonctionnel d'abord, perfectionnement ensuite
-8. **Claude Code = lead** : Toute decision technique passe par Claude Code
+1. **Kala = boite noire** : Ne JAMAIS reconstruire ce que Kala fait
+2. **Simplicite** : 4 workflows, pas de sur-ingenierie
+3. **Compliance by design** : LPD/LSFIN integre partout
+4. **Revenue-first** : L'automation post-resultat = levier #1
+5. **Swiss Heritage = acquisition + post-resultat** : Rien d'autre
 
 ---
 
 ## 10. CHANGELOG
 
+### 2026-02-14 - v3.0 (Claude Code) - CLARIFICATION KALA
+- CLARIFICATION : Swiss Heritage != moteur de recherche
+- Reduction architecture 5 couches -> 3 couches
+- Suppression agents inutiles (Documentaliste, Signature, Kala Bridge)
+- Reduction 14 workflows -> 4 workflows
+- Reduction 20+ statuts -> 6 statuts
+- Nouveau flow simplifie
+
 ### 2026-02-14 - v2.0 (Claude Code)
-- Refonte complete du site avec design 3D premium
+- Refonte site design 3D premium
 - Formulaire multi-etapes inspire de Kala
-- Conformite LPD/LSFIN complete
-- Stats mises a jour depuis donnees Kala
-- Creation CLAUDE.md (ce document)
 - Initialisation repo GitHub
-- Repartition des taches Claude Code / OpenClaw

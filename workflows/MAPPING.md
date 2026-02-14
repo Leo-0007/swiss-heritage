@@ -1,105 +1,105 @@
 # Mapping des donnees - Swiss Heritage
 
----
-
-## 1. FORMULAIRE SITE -> WEBHOOK
-
-| Champ formulaire | Cle JSON | Type | Obligatoire | Validation |
-|-----------------|----------|------|-------------|------------|
-| Prenom | `prenom` | string | Oui | Non vide |
-| Nom | `nom` | string | Oui | Non vide |
-| (calcule) | `name` | string | Auto | `{prenom} {nom}` |
-| Email | `email` | string | Oui | Format email valide |
-| Telephone | `phone` | string | Oui | Format +41... |
-| Date naissance | `date_naissance` | string | Non | Format YYYY-MM-DD |
-| Canton | `canton` | string | Non | Un des 26 cantons |
-| Nationalite | `nationalite` | string | Non | Defaut: "suisse" |
-| Statut emploi | `statut_emploi` | string | Non | employe/independant/chomage/retraite/autre |
-| Nb employeurs | `nb_employeurs` | string | Non | 1-2/3-5/6-10/10+ |
-| Consentement | `consentement_contact` | boolean | Oui | Doit etre true |
-| (auto) | `consentement_timestamp` | string | Auto | ISO-8601 |
-| (auto) | `timestamp` | string | Auto | ISO-8601 |
-| (fixe) | `source` | string | Auto | "swiss-heritage-website" |
-| (fixe) | `langue` | string | Auto | "fr" |
+> **v2.0** - Simplifie. Swiss Heritage = acquisition + post-resultat.
 
 ---
 
-## 2. WEBHOOK -> CRM GOOGLE SHEETS
-
-| Colonne Sheets | Source | Transformation |
-|---------------|--------|----------------|
-| lead_id | (genere) | `SH-{YYYY}-{auto-increment 4 digits}` |
-| timestamp | `timestamp` | Format date locale CH |
-| prenom | `prenom` | Trim + capitalize |
-| nom | `nom` | Trim + capitalize |
-| email | `email` | Trim + lowercase |
-| phone | `phone` | Normaliser format +41 |
-| date_naissance | `date_naissance` | Garder ISO |
-| canton | `canton` | Tel quel |
-| nationalite | `nationalite` | Tel quel |
-| statut_emploi | `statut_emploi` | Tel quel |
-| nb_employeurs | `nb_employeurs` | Tel quel |
-| score | (calcule par O3) | Entier 0-100 |
-| statut | (defaut) | "nouveau" |
-| source | `source` | Tel quel |
-| consentement_timestamp | `consentement_timestamp` | ISO-8601 |
-
----
-
-## 3. SCORING (O3) -> ROUTING
+## FLOW COMPLET
 
 ```
-INPUT: lead depuis CRM
-  |
-  ├── nb_employeurs
-  │     "1-2"  -> 5 pts
-  │     "3-5"  -> 15 pts
-  │     "6-10" -> 20 pts
-  │     "10+"  -> 25 pts
-  │
-  ├── statut_emploi
-  │     "chomage"    -> 20 pts
-  │     "retraite"   -> 20 pts
-  │     "independant" -> 10 pts
-  │     "employe"    -> 5 pts
-  │     "autre"      -> 10 pts
-  │
-  ├── source (champ futur)
-  │     "referral"/"partner" -> 10 pts
-  │     "ads"                -> 5 pts
-  │     "organic"/"website"  -> 3 pts
-  │
-  └── SCORE TOTAL = somme des criteres
-        |
-        ├── >= 70 -> HOT    -> O5 (alerte immediate) + O7 (WhatsApp M1)
-        ├── 40-69 -> WARM   -> O5 (alerte 1h) + O7 (WhatsApp M1 en 1h)
-        ├── 20-39 -> COLD   -> O4 (email nurturing)
-        └── < 20  -> DISQ   -> O4 (email generique) + archive
+[Formulaire site] --POST--> [W1: webhook n8n] --POST--> [API Kala]
+                                   |
+                                   v
+                            [CRM Google Sheets]
+                                   |
+                                   v
+                            [W2: email/WA confirmation]
+
+         ... 2-3 mois plus tard ...
+
+[API Kala] --POST--> [W3: webhook retour] --> [W4: automation post-resultat]
 ```
 
 ---
 
-## 4. STATUTS (Machine d'etat)
+## 1. FORMULAIRE -> W1 (webhook reception)
+
+| Champ formulaire | Cle JSON | Type | Obligatoire |
+|-----------------|----------|------|-------------|
+| Prenom | `prenom` | string | Oui |
+| Nom | `nom` | string | Oui |
+| (calcule) | `name` | string | Auto |
+| Email | `email` | string | Oui |
+| Telephone | `phone` | string | Oui |
+| Date naissance | `date_naissance` | string | Non |
+| Canton | `canton` | string | Non |
+| Nationalite | `nationalite` | string | Non |
+| Statut emploi | `statut_emploi` | string | Non |
+| Nb employeurs | `nb_employeurs` | string | Non |
+| Consentement | `consentement_contact` | boolean | Oui (= true) |
+| (auto) | `consentement_timestamp` | string | Auto |
+| (auto) | `timestamp` | string | Auto |
+| (fixe) | `source` | string | Auto |
+| (fixe) | `langue` | string | Auto |
+
+---
+
+## 2. W1 -> CRM Google Sheets
+
+| Colonne | Source | Transformation |
+|---------|--------|----------------|
+| lead_id | (genere) | SH-{YYYY}-{auto} |
+| timestamp | payload | Format local |
+| prenom | payload | Trim + capitalize |
+| nom | payload | Trim + capitalize |
+| email | payload | Trim + lowercase |
+| phone | payload | Normaliser +41 |
+| canton | payload | Tel quel |
+| nb_employeurs | payload | Tel quel |
+| statut | (defaut) | "new" |
+| kala_reference | (retour API Kala) | ID du dossier chez Kala |
+
+---
+
+## 3. W1 -> API Kala
+
+Payload a envoyer a Kala (format exact a confirmer avec Kala) :
+```json
+{
+  "prenom": "Jean",
+  "nom": "Dupont",
+  "email": "jean.dupont@email.ch",
+  "phone": "+41 79 123 45 67",
+  "date_naissance": "1985-03-15",
+  "nationalite": "suisse",
+  "partner_reference": "SH-2026-0001",
+  "callback_url": "https://n8n.swiss-leads.ch/webhook/kala-result"
+}
+```
+
+---
+
+## 4. W3 <- Retour Kala
+
+Payload recu de Kala (format exact a confirmer) :
+```json
+{
+  "partner_reference": "SH-2026-0001",
+  "status": "found | not_found | error",
+  "amount_found": 47320.00,
+  "details": "..."
+}
+```
+
+---
+
+## 5. STATUTS
 
 ```
-STATUT               TRIGGER                    ACTION SUIVANTE
-─────────────────────────────────────────────────────────────────
-nouveau              Reception formulaire       -> O3 scoring
-contacted            1er contact effectue       -> Qualification
-qualified            Score >= 40                -> O8 docs request
-docs_requested       Demande docs envoyee       -> Attente
-docs_partial         Certains docs recus        -> O8 relance
-docs_complete        Tous docs recus            -> O9 signature
-contract_sent        Mandat envoye              -> Attente
-mandate_signed       Signature recue            -> O10 Kala Bridge
-kala_ready           Dossier valide             -> Soumission Kala
-submitted_to_kala    Dossier envoye             -> Attente
-kala_processing      En cours chez Kala         -> Monitoring
-kala_result_found    Avoirs trouves             -> O12 notification
-kala_result_not_found Rien trouve               -> O12 notification
-kala_error           Erreur Kala                -> Retry/escalade
-client_notified      Client informe             -> Selon resultat
-rapatriation_started Rapatriement lance         -> Suivi
-payout_confirmed     Paiement confirme          -> Facturation
-won                  Dossier cloture avec succes -> Archive
+new            -> Lead recu
+sent_to_kala   -> Transmis a Kala (kala_reference recu)
+confirmed      -> Client confirme par email/WA
+result_found   -> Kala: avoirs trouves
+result_empty   -> Kala: rien trouve
+contacted      -> Client contacte post-resultat
 ```
